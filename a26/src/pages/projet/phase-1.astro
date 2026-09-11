@@ -1,0 +1,776 @@
+---
+/**
+ * Énoncé du projet de session - IFT2255 Génie logiciel
+ * Page autonome. Pour l'intégrer au site du cours, décommentez
+ * l'import de la mise en page et enveloppez le contenu.
+ */
+// import Layout from "../layouts/Layout.astro";
+
+const config = {
+  cours: "IFT2255 (Automne 2026)",
+  titre: "Génie logiciel",
+  projet: "Concevoir une plateforme de planification des études",
+  phase: "Phase 1",
+  phaseNom: "Analyse, exigences et conception",
+  equipe: "3 à 4 personnes",
+  duree: "3 semaines",
+  debut: "11 septembre 2026",
+  remise: "vendredi 2 octobre 2026",
+  quotaQuestions: "3 questions par semaine et par équipe",
+  fenetreQuestions: "du vendredi au mardi",
+  outil: "Mon cheminement",
+};
+
+const fenetres = [
+  { n: 1, ouverture: "vendredi 11 septembre", fermeture: "mardi 15 septembre" },
+  { n: 2, ouverture: "vendredi 18 septembre", fermeture: "mardi 22 septembre" },
+  { n: 3, ouverture: "vendredi 25 septembre", fermeture: "mardi 29 septembre" },
+];
+
+const ponderations = [
+  {
+    titre: "Rapport d'analyse et de conception",
+    format: "PDF",
+    // poids: 70,
+    quoi: "Analyse du prototype, simplifications arbitrées, exigences du système visé, artefacts de modélisation A1 à A3, traces d'enquête.",
+  },
+  {
+    titre: "Dépôt GitHub avec release",
+    format: "Release étiquetée et README",
+    // poids: 30,
+    quoi: "Le prototype de votre solution, une release datée, et un README qui permet à une personne de l'extérieur de comprendre et de lancer le projet.",
+  },
+];
+
+const contenuRapport = [
+  "Description du projet: contexte, problématique, solution envisagée",
+  "Ce que le prototype de référence modélise, et comment vous l'avez établi.",
+  "Les simplifications que vous avez relevées, avec pour chacune un verdict : acceptable pour un outil de planification, ou à corriger dans le système visé.",
+  "Les exigences retenues, rattachées à un objectif du système et à une observation qui les justifie.",
+  "Les trois artefacts de modélisation A1, A2 et A3 décrits plus bas.",
+  "Vos traces d'enquête : sessions exportées, questions posées, réponses obtenues, sources consultées.",
+  "Ce que votre conception sacrifie, et pourquoi vous l'assumez.",
+];
+
+const artefacts = [
+  {
+    code: "A1",
+    titre: "Diagramme de cas d'utilisation",
+    quoi: "Une vue d'ensemble des cas d'utilisation du système visé, accompagnée d'une fiche pour les dix cas principaux.",
+    exigences: [
+      "Le diagramme montre les acteurs, les cas d'utilisation et leurs relations, y compris les inclusions et les extensions.",
+      "Les acteurs sont identifiés et distingués : acteur principal, acteurs secondaires, systèmes externes.",
+      "Chaque CU principal fait l'objet d'une fiche qui précise son but, son déclencheur, ses préconditions, ses postconditions et ses dépendances envers d'autres cas.",
+      "Le but est formulé du point de vue de l'acteur, pas de celui du système.",
+      "Les postconditions décrivent l'état du système après un déroulement réussi, et ce qui change en cas d'échec.",
+    ],
+  },
+  {
+    code: "A2",
+    titre: "Cinq flux principaux (Diagrammes d'activités)",
+    quoi: "Cinq diagrammes d'activités décrivant les flux principaux, établis à partir de votre analyse du prototype.",
+    exigences: [
+      "Chaque flux est rattaché à un cas d'utilisation de A1 et à une observation faite dans le prototype.",
+      "Les diagrammes font apparaître les points de décision, les chemins alternatifs et les fins d'exécution en échec.",
+      "Les couloirs distinguent les responsabilités : la personne étudiante, le système, et les acteurs externes qui interviennent.",
+      "L'ensemble doit couvrir au moins un flux qui échoue, un flux qui dépend d'un tiers, et un flux soumis à une échéance.",
+      "Un court texte accompagne chaque diagramme et explique ce que le prototype fait différemment, s'il y a lieu.",
+    ],
+  },
+  {
+    code: "A3",
+    titre: "Modèle C4, niveaux 1 et 2",
+    quoi: "Le contexte du système et sa décomposition en conteneurs.",
+    exigences: [
+      "Niveau 1, contexte : le système visé, les personnes qui l'utilisent, et les systèmes externes avec lesquels il échange.",
+      "Niveau 2, conteneurs : les applications, services et lieux de stockage qui composent le système, avec leurs technologies.",
+      "Chaque relation porte une étiquette qui dit ce qui circule et par quel moyen.",
+      "Les deux niveaux restent cohérents entre eux et avec les cas d'utilisation de A1.",
+      "Les choix techniques du niveau 2 sont justifiés en une phrase chacun.",
+    ],
+  },
+];
+
+const contenuReadme = [
+  "À quoi sert le projet, en quelques phrases.",
+  "L'état d'avancement : ce qui fonctionne, ce qui est simulé, ce qui reste à faire.",
+  "Comment installer et lancer le prototype.",
+  "La composition de l'équipe et la répartition du travail.",
+  "Les outils d'assistance logicielle utilisés, et pour quelles parties.",
+];
+
+const objectifs = [
+  {
+    code: "O1",
+    titre: "Rassembler une offre éclatée",
+    detail: "Les cours figurent au répertoire, les projets se négocient de personne à personne, les stages passent par des employeurs, les séminaires circulent par courriel. Aucun endroit ne montre l'ensemble.",
+  },
+  {
+    code: "O2",
+    titre: "Relier l'offre à une personne",
+    detail: "Une même offre n'a pas la même valeur pour tout le monde. Le système doit tenir compte des intérêts déclarés, des exigences du programme et de la façon dont la personne veut apprendre.",
+  },
+  {
+    code: "O3",
+    titre: "Rendre les contraintes visibles avant la décision",
+    detail: "Plafond de crédits, seuil de temps plein, charge hebdomadaire, blocs obligatoires, dates limites : ces règles se découvrent souvent trop tard, une fois la décision prise.",
+  },
+  {
+    code: "O4",
+    titre: "Tenir compte du temps",
+    detail: "Une session se déroule par phases, les places s'épuisent, les personnes qui encadrent deviennent moins disponibles, certaines activités n'ouvrent qu'en cours de route. Planifier, c'est décider sous contrainte de calendrier.",
+  },
+  {
+    code: "O5",
+    titre: "Dépasser la session en cours",
+    detail: "Un choix d'aujourd'hui se paie ou se rentabilise deux sessions plus tard. Le système doit permettre de projeter un cheminement, sans laisser croire qu'une intention équivaut à une place réservée.",
+  },
+  {
+    code: "O6",
+    titre: "Réduire la dépendance à la connaissance tacite",
+    detail: "Beaucoup de ce qui compte ne s'apprend qu'en parlant à la bonne personne. Un outil de planification vise à en rendre une partie accessible à tout le monde, sans prétendre remplacer le conseil.",
+  },
+];
+
+const partiesPrenantes = [
+  { qui: "Personne étudiante", enjeu: "Construire un plan viable, en comprendre les conséquences, ne pas rater une échéance." },
+  { qui: "Personne qui encadre", enjeu: "Recevoir des demandes pertinentes, en nombre soutenable, et pouvoir dire non tôt." },
+  { qui: "Conseil de programme", enjeu: "Que les plans respectent les règles du programme sans multiplier les cas à corriger." },
+  { qui: "Laboratoires et organisations", enjeu: "Faire connaître des places qui autrement ne se remplissent pas, et sélectionner." },
+  { qui: "Registrariat", enjeu: "Des inscriptions valides, des abandons dans les délais, des dossiers cohérents." },
+];
+
+const composants = [
+  { nom: "Profil et exigences", detail: "Intérêts déclarés, exigences du programme pour la session, crédits visés, préférences d'apprentissage." },
+  { nom: "Plan de session", detail: "Une case par exigence, à l'état vide, demandé, offert ou confirmé, avec ajout et retrait." },
+  { nom: "Le monde", detail: "Cours réels, projets supervisés, postes en laboratoire, stages, séminaires et concours, avec leurs places et leurs rattachements." },
+  { nom: "Personnes et lieux", detail: "Superviseurs, laboratoires et organisations, avec une disponibilité et un niveau de réponse qui varient dans le temps." },
+  { nom: "Calendrier", detail: "Dates officielles importables, échéances signalées dans le bandeau de session et dans les alertes." },
+  { nom: "Exigences et alertes", detail: "Minimums, plafonds de crédits et de charge, bloc de concentration, seuil de temps plein, avec un état par règle." },
+  { nom: "Appréciations", detail: "Un retour simple sur une activité suivie, qui ajuste les suggestions ultérieures." },
+  { nom: "Vue multi-sessions", detail: "Quatre sessions, avec exigences modifiables et intentions déposées pour plus tard." },
+];
+
+const apprentissages = [
+  "Élicitation des exigences auprès de personnes qui connaissent un domaine sans pouvoir le décrire spontanément.",
+  "Modélisation d'un processus réel comportant plusieurs acteurs, des délais et des modes de défaillance.",
+  "Arbitrage entre contraintes concurrentes, et argumentation des compromis retenus.",
+  "Conception d'une interface qui expose des règles sans noyer la personne qui l'utilise.",
+  "Évaluation critique d'un artefact logiciel existant, en distinguant le choix de conception de l'erreur.",
+];
+
+const etapes = [
+  {
+    n: 1,
+    nom: "Comprendre le prototype",
+    quand: "semaine du 11 septembre",
+    but: "Établir par la manipulation ce que le système modélise, et ce qu'il passe sous silence.",
+    taches: [
+      "Configurez plusieurs profils contrastés et jouez des sessions complètes jusqu'à la clôture.",
+      "Cherchez ce que l'interface ne dit pas : ce qui arrive quand une demande reste sans réponse, quand une place se remplit avant vous, quand une échéance passe.",
+      "Exportez vos sessions. Ces fichiers constituent vos premières traces d'enquête.",
+      "Posez vos premières questions au conseiller, dans la fenêtre de la semaine.",
+    ],
+  },
+  {
+    n: 2,
+    nom: "Confronter au réel et formuler les exigences",
+    quand: "semaine du 18 septembre",
+    but: "Mesurer l'écart avec le fonctionnement réel, puis en tirer des exigences défendables.",
+    taches: [
+      "Documentez un parcours réellement vécu par une personne de l'équipe, de bout en bout : qui intervient, quels documents circulent, quels délais s'écoulent, où le parcours peut échouer.",
+      "Relevez les simplifications du prototype et tranchez chacune : acceptable, ou à corriger.",
+      "Formulez les exigences du système visé, rattachées aux objectifs O1 à O6.",
+      "Consultez au moins une source qui n'est pas le conseiller.",
+    ],
+  },
+  {
+    n: 3,
+    nom: "Concevoir et prototyper",
+    quand: "semaine du 25 septembre",
+    but: "Donner une forme concrète à la solution envisagée, et la rendre lisible de l'extérieur.",
+    taches: [
+      "Concevez votre solution : modèle du domaine, parcours principaux, décisions d'architecture.",
+      "Construisez un prototype qui rend vos choix tangibles. Il n'a pas à être complet, il a à être démonstratif.",
+      "Le prototype n'est pas évalué pour son étendue fonctionnelle, mais pour sa capacité à rendre vos décisions de conception observables et discutables.",
+      "Publiez une release sur GitHub et rédigez le README.",
+      "Rédigez le rapport et rassemblez vos traces.",
+    ],
+  },
+];
+
+const criteres = [
+  {
+    titre: "Qualité de l'enquête",
+    // poids: "20 %",
+    haut: "Les questions posées portent sur des raisons, des exceptions et des cas limites. Les sources sont croisées et les divergences relevées.",
+    bas: "Aucune question posée, ou des questions dont la réponse figure dans un document publié.",
+  },
+  {
+    titre: "Discernement dans l'analyse",
+    // poids: "25 %",
+    haut: "Les simplifications sont relevées puis arbitrées, chaque verdict étant justifié par ce que l'écart coûte à la personne qui utilise l'outil.",
+    bas: "Une liste de manques, sans hiérarchie ni justification. Tout écart est traité comme un défaut.",
+  },
+  {
+    titre: "Qualité des exigences",
+    // poids: "25 %",
+    haut: "Chaque exigence est traçable jusqu'à une observation et rattachée à un objectif. Les conflits entre exigences sont nommés et arbitrés.",
+    bas: "Des exigences génériques, sans origine, qui pourraient valoir pour n'importe quel système.",
+  },
+  {
+    titre: "Modélisation, conception et prototype",
+    // poids: "20 %",
+    haut: "Les trois artefacts sont cohérents entre eux et découlent des exigences. Le prototype rend les choix tangibles et le dépôt est lisible de l'extérieur.",
+    bas: "Des diagrammes produits pour eux-mêmes, sans lien avec les exigences ni entre eux, ou un dépôt que personne d'autre ne peut lancer.",
+  },
+  {
+    titre: "Défense des choix",
+    // poids: "10 %",
+    haut: "L'équipe nomme ce qu'elle a sacrifié et pourquoi.",
+    bas: "L'équipe présente ses choix comme les seuls possibles.",
+  },
+];
+
+const horsSujet = [
+  "Le calendrier des études et les dates limites, qui sont publiés.",
+  "Les exigences d'un programme, qui figurent au répertoire.",
+  "Le règlement des études de premier cycle.",
+  "Les conditions d'admission et les cotes de rendement.",
+  "Toute question dont la réponse tient dans une page du site de l'université.",
+];
+
+const pistes = [
+  "Pourquoi cette règle existe-t-elle, et qu'est-ce qu'elle protège ?",
+  "Quelle exception accordez-vous régulièrement, et laquelle n'accordez-vous jamais ?",
+  "Qu'est-ce que les personnes étudiantes comprennent systématiquement de travers ?",
+  "Qu'est-ce qui se détraque chaque année au même moment ?",
+  "Quelle décision prise en début de session se paie trois sessions plus tard ?",
+  "Qu'est-ce que vous aimeriez qu'un outil affiche, et que personne n'affiche ?",
+];
+---
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{config.cours} - Projet de session</title>
+  </head>
+  <body>
+    <main class="enonce">
+      <header class="entete">
+        <p class="surtitre">{config.cours} {config.titre} - Projet de session - {config.phase}</p>
+        <h1>{config.projet}</h1>
+        <p class="chapeau">
+          Le projet de session vous amène à concevoir et à construire une plateforme de
+          planification des études. Le point de départ n'est pas une page blanche : c'est un
+          prototype existant, <strong>{config.outil}</strong>, que vous devez d'abord comprendre,
+          puis critiquer, puis dépasser.
+        </p>
+        <p class="chapeau">
+          Cette page décrit la <strong>{config.phase} : {config.phaseNom}</strong>. En trois
+          semaines, vous analysez le prototype de référence, vous en tirez les exigences du
+          système visé, et vous concevez puis prototypez la solution que vous envisagez.
+        </p>
+        <ul class="meta">
+          <li><span>Équipes</span> {config.equipe}</li>
+          <li><span>Durée</span> {config.duree}</li>
+          <li><span>Début</span> {config.debut}</li>
+          <li><span>Remise</span> {config.remise}</li>
+        </ul>
+      </header>
+
+      <section>
+        <h2>Le problème</h2>
+        <p>
+          Choisir ses cours paraît simple vu de loin. Dans les faits, une personne qui planifie
+          sa session doit composer avec une offre dispersée entre le répertoire des cours, les
+          pages des départements, les affiches des laboratoires et les courriels de ses
+          professeurs. Elle doit respecter des règles de programme qu'elle lit rarement en entier,
+          des plafonds de crédits, un seuil de temps plein qui conditionne ses prêts et bourses,
+          et un calendrier de dates limites dont le dépassement coûte parfois de l'argent.
+        </p>
+        <p>
+          Elle doit surtout composer avec une rareté qui ne s'affiche nulle part. Les places de
+          projet supervisé sont peu nombreuses, les personnes qui encadrent répondent inégalement,
+          et un professeur très sollicité devient souvent celui qui répond le moins vite. Une
+          bonne partie de ce qui permet de s'y retrouver ne figure dans aucun document : elle
+          circule entre pairs, ou s'obtient en parlant à la bonne personne au bon moment. Qui n'a
+          pas ce réseau planifie moins bien, à mérite égal.
+        </p>
+
+        <h2>Le système visé</h2>
+        <p>
+          <strong>{config.outil}</strong> est un prototype de plateforme personnalisée de
+          planification des études. Il place la personne étudiante au centre, et rassemble autour
+          d'elle ce qui compose réellement un parcours : des cours, mais aussi des projets, des
+          postes en laboratoire, des stages, des séminaires et des concours, portés par des
+          professeurs, des équipes de recherche et des organisations partenaires. Chacun de ces
+          acteurs a ses propres contraintes et sa propre capacité d'accueil.
+        </p>
+
+        <div class="objectifs">
+          {objectifs.map((o) => (
+            <article class="objectif">
+              <span class="code">{o.code}</span>
+              <div>
+                <h3>{o.titre}</h3>
+                <p>{o.detail}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <h3 class="sous-titre">Parties prenantes</h3>
+        <p>
+          Un système de planification ne sert pas qu'une seule personne, et les intérêts en
+          présence ne convergent pas toujours.
+        </p>
+        <table class="prenantes">
+          <tbody>
+            {partiesPrenantes.map((p) => (
+              <tr>
+                <td><strong>{p.qui}</strong></td>
+                <td>{p.enjeu}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Ce que le prototype couvre déjà</h2>
+        <p>
+          <strong>{config.outil}</strong> simule une session de quinze semaines qui se déroule
+          pendant que vous planifiez. Les places s'épuisent, les personnes qui encadrent voient
+          leur disponibilité et leur niveau de réponse évoluer selon la charge qu'elles reçoivent,
+          des activités ouvrent en cours de route, des échéances passent. Une demande laissée sans
+          réponse finit par expirer.
+        </p>
+        <div class="grille">
+          {composants.map((c) => (
+            <article class="carte carte-bleue">
+              <h3>{c.nom}</h3>
+              <p>{c.detail}</p>
+            </article>
+          ))}
+        </div>
+        <p class="apres-grille">
+          Ce prototype est un <em>objet d'étude</em>, pas une base de code à reprendre. Vous n'avez
+          pas à l'étendre ni à le corriger. Vous avez à comprendre ce qu'il modélise, à mesurer
+          l'écart avec la réalité, et à construire le vôtre.
+        </p>
+      </section>
+
+      <!-- <section>
+        <h2>Objectifs d'apprentissage</h2>
+        <p>Au terme du projet, vous devriez être en mesure de mener les activités suivantes.</p>
+        <ol class="apprentissages">
+          {apprentissages.map((a) => <li>{a}</li>)}
+        </ol>
+      </section> -->
+
+      <section class="simplif">
+        <h2>Simplifications</h2>
+        <p>
+          Le prototype est loin d'être complet, et il n'est pas cohérent avec les contraintes
+          réelles ni avec les exigences des programmes d'études universitaires. Ces écarts ne
+          sont pas listés ici : les relever fait partie du travail.
+        </p>
+        <p>
+          Dans votre analyse, vous devrez donc repérer ces simplifications, puis indiquer
+          lesquelles doivent être corrigées dans le système visé et lesquelles peuvent rester
+          en l'état. Un écart n'est pas nécessairement un défaut : tout dépend de ce qu'il
+          coûte à la personne qui utilise l'outil.
+        </p>
+      </section>
+
+      <section>
+        <h2>Déroulement de la phase 1</h2>
+        <p>
+          Les trois semaines se recouvrent en partie : l'enquête se poursuit pendant que la
+          conception commence. Le découpage ci-dessous indique où porter l'effort principal.
+        </p>
+        {etapes.map((e) => (
+          <article class="phase">
+            <div class="phase-tete">
+              <span class="numero">{e.n}</span>
+              <div>
+                <h3>{e.nom}</h3>
+                <p class="duree">{e.quand}</p>
+              </div>
+            </div>
+            <p class="but">{e.but}</p>
+            <ul>
+              {e.taches.map((t) => <li>{t}</li>)}
+            </ul>
+          </article>
+        ))}
+      </section>
+
+      <section class="entrevue">
+        <h2>Questions au conseiller et client</h2>
+        <p>
+          Vous avez accès à un conseiller de programme au DIRO. Il connaît le
+          processus réel et vous aidera à cadrer vos exigences.
+        </p>
+        <p class="budget">
+          Chaque équipe dispose de <strong>{config.quotaQuestions}</strong>, à poser
+          <strong>{config.fenetreQuestions}</strong>. Les questions non posées ne se reportent
+          pas d'une semaine à l'autre.
+        </p>
+        <div class="fenetres">
+          {fenetres.map((f) => (
+            <article class="fenetre">
+              <span class="numero-f">{f.n}</span>
+              <div>
+                <p class="ouverture">Ouvre le {f.ouverture}</p>
+                <p class="fermeture">Ferme le {f.fermeture}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+        <p class="penalite">
+          Une équipe qui n'a posé aucune question pendant la phase 1 se verra attribuer une
+          légère pénalité. Ne pas questionner, c'est se priver de la seule source que le
+          projet vous offre et que personne ne peut consulter à votre place.
+        </p>
+
+        <h3>Hors du périmètre des questions</h3>
+        <p>Ces questions trouvent leur réponse dans des documents publics et gaspillent votre quota.</p>
+        <ul class="interdits">
+          {horsSujet.map((h) => <li>{h}</li>)}
+        </ul>
+
+        <!-- <h3>Pistes de questions productives</h3>
+        <ul class="pistes">
+          {pistes.map((q) => <li>{q}</li>)}
+        </ul> -->
+
+        <p class="avertissement">
+          Le conseiller voit le processus depuis son bureau, ce qui est un point de vue parmi
+          d'autres. Un professeur, le registrariat, un employeur de stage ou une personne qui
+          s'inscrit pour la première fois décriraient un système différent. Les écarts entre
+          ces récits sont souvent l'endroit où se trouvent les vrais problèmes de conception.
+          Une source non conseillère est exigée.
+        </p>
+      </section>
+
+      <section>
+        <h2>Livrables</h2>
+        <p>
+          Deux livrables, remis le <strong>{config.remise}</strong>. Le dépôt doit porter une
+          release étiquetée à cette date : c'est cette release qui est évaluée, pas l'état
+          courant de la branche principale.
+        </p>
+        <table>
+          <thead>
+            <tr>
+                <th>Livrable</th>
+                <th>Format</th>
+                <!-- <th>Poids</th> -->
+                <th>Contenu</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ponderations.map((l) => (
+              <tr>
+                <td><strong>{l.titre}</strong></td>
+                <td>{l.format}</td>
+                
+                <td>{l.quoi}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div class="deux-colonnes">
+          <article class="attendu">
+            <h3>Le rapport contient</h3>
+            <ol>
+              {contenuRapport.map((c) => <li>{c}</li>)}
+            </ol>
+          </article>
+          <article class="attendu">
+            <h3>Le README contient</h3>
+            <ol>
+              {contenuReadme.map((c) => <li>{c}</li>)}
+            </ol>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Artefacts de modélisation exigés</h2>
+        <p>
+          Trois artefacts doivent figurer dans le rapport. Ils portent sur le <strong>système
+          visé</strong>, celui que vous concevez, et non sur le prototype de référence. Celui-ci
+          vous sert de terrain d'observation : vos diagrammes doivent pouvoir se rattacher à ce
+          que vous y avez constaté, mais ils décrivent votre solution.
+        </p>
+        {artefacts.map((a) => (
+          <article class="artefact">
+            <div class="artefact-tete">
+              <span class="code">{a.code}</span>
+              <div>
+                <h3>{a.titre}</h3>
+                <p class="artefact-quoi">{a.quoi}</p>
+              </div>
+            </div>
+            <ul>
+              {a.exigences.map((e) => <li>{e}</li>)}
+            </ul>
+          </article>
+        ))}
+        <p class="note-diagrammes">
+          Les diagrammes doivent rester lisibles une fois imprimés. Déposez leurs fichiers
+          sources dans le dépôt, en plus des images intégrées au rapport, afin qu'ils restent
+          modifiables aux phases suivantes.
+        </p>
+      </section>
+
+      <!-- <section>
+        <h2>Critères d'évaluation</h2>
+        <p>
+          Le critère qui départage les travaux est simple : avez-vous obtenu une connaissance
+          <em>tacite</em>, c'est-à-dire un savoir d'expérience que personne n'a écrit, ou avez-vous
+          seulement confirmé des faits déjà publiés ? Un compte rendu d'entrevue dont chaque réponse
+          aurait pu être trouvée dans un document est une entrevue manquée, aussi courtoise
+          fût-elle.
+        </p>
+        {criteres.map((c) => (
+          <article class="critere">
+            <div class="critere-tete">
+              <h3>{c.titre}</h3>
+              <span class="poids">{c.poids}</span>
+            </div>
+            <div class="niveaux">
+              <div class="haut"><span>Attendu</span><p>{c.haut}</p></div>
+              <div class="bas"><span>Insuffisant</span><p>{c.bas}</p></div>
+            </div>
+          </article>
+        ))}
+      </section> -->
+
+      <section class="note-ia">
+        <h2>Sur l'usage de l'assistance logicielle</h2>
+        <p>
+          La génération de code assistée est autorisée pour le prototype, y compris les approches
+          de type <em>vibe coding</em>, c'est-à-dire la production rapide de code par dialogue avec
+          un assistant. Déclarez dans le README les outils employés et les parties concernées.
+        </p>
+        <p>
+          Ce qui ne se délègue pas, c'est l'enquête. La matière première de cette phase est votre
+          propre observation du prototype, ce que vous aurez tiré de vos questions au conseiller
+          et de vos autres sources : rien de tout cela n'existe dans un corpus consultable. Un
+          rapport dont les constats pourraient avoir été produits sans jamais lancer l'outil ni
+          parler à personne se reconnaît sans difficulté, et se note en conséquence.
+        </p>
+      </section>
+    </main>
+
+    <style is:global>
+      html, body { margin: 0; padding: 0; background: #f5f5f5; }
+    </style>
+
+    <style>
+      .enonce {
+        --encre: #1a2229;
+        --encre-douce: #5a646c;
+        --encre-pale: #8b939a;
+        --papier: #f5f5f5;
+        --carte: #ffffff;
+        --regle: #d8d8d8;
+        --regle-douce: #e6e6e6;
+        --bleu: #0057b8;
+        --vert: #146b5e;
+        --rose: #c93e68;
+        --ambre: #b0770d;
+        max-width: 62rem;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 6rem;
+        background: var(--papier);
+        color: var(--encre);
+        font-family: "Public Sans", system-ui, -apple-system, sans-serif;
+        line-height: 1.6;
+      }
+      .enonce *, .enonce *::before, .enonce *::after { box-sizing: border-box; }
+
+      .entete { border-bottom: 2px solid var(--encre); padding-bottom: 1.75rem; margin-bottom: 2.5rem; }
+      .surtitre {
+        font-size: 0.8rem; letter-spacing: 0.09em; text-transform: uppercase;
+        color: var(--encre-douce); font-weight: 600; margin: 0 0 0.5rem;
+      }
+      h1 {
+        font-family: "Bricolage Grotesque", "Public Sans", sans-serif;
+        font-size: clamp(2rem, 5vw, 2.9rem); line-height: 1.05;
+        letter-spacing: -0.03em; margin: 0 0 1rem;
+      }
+      .chapeau { font-size: 1.05rem; color: var(--encre-douce); max-width: 46rem; margin: 0 0 1.5rem; }
+      .chapeau strong { color: var(--encre); }
+      .meta { list-style: none; display: flex; flex-wrap: wrap; gap: 1.75rem; padding: 0; margin: 0; }
+      .meta li { font-size: 0.9rem; }
+      .meta span {
+        display: block; font-size: 0.7rem; letter-spacing: 0.09em;
+        text-transform: uppercase; color: var(--encre-pale); font-weight: 600;
+      }
+
+      section { margin-bottom: 3rem; }
+      h2 {
+        font-family: "Bricolage Grotesque", "Public Sans", sans-serif;
+        font-size: 1.6rem; letter-spacing: -0.02em; margin: 0 0 0.9rem;
+      }
+      h3 { font-size: 1.05rem; margin: 0 0 0.35rem; }
+      p { margin: 0 0 1rem; }
+
+      .carte {
+        background: var(--carte); border: 1px solid var(--regle-douce);
+        border-left: 3px solid var(--ambre); border-radius: 6px; padding: 0.9rem 1rem;
+      }
+      .carte h3 { font-size: 0.95rem; }
+      .carte p { font-size: 0.85rem; color: var(--encre-douce); margin: 0; }
+
+      .simplif {
+        background: var(--carte); border: 1px solid var(--regle-douce);
+        border-left: 3px solid var(--ambre); border-radius: 6px; padding: 1.3rem 1.5rem;
+      }
+      .simplif p:last-child { margin-bottom: 0; }
+
+      .objectifs { display: grid; gap: 0.7rem; margin: 1.25rem 0 2rem; }
+      .objectif {
+        display: flex; gap: 0.9rem; align-items: flex-start;
+        background: var(--carte); border: 1px solid var(--regle-douce);
+        border-radius: 6px; padding: 0.95rem 1.1rem;
+      }
+      .objectif .code {
+        flex-shrink: 0; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.04em;
+        color: var(--bleu); background: #e8f0fa; border-radius: 4px;
+        padding: 0.25rem 0.5rem; margin-top: 0.15rem;
+      }
+      .objectif h3 { font-size: 0.98rem; margin: 0 0 0.25rem; }
+      .objectif p { font-size: 0.89rem; color: var(--encre-douce); margin: 0; }
+
+      .sous-titre { font-size: 1.15rem; margin-top: 2rem; }
+      .prenantes { margin-top: 0.9rem; }
+      .prenantes td { font-size: 0.89rem; }
+      .prenantes td:first-child { width: 34%; white-space: nowrap; }
+
+      .grille {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+        gap: 0.75rem; margin-top: 1.25rem;
+      }
+      .carte-bleue { border-left-color: var(--bleu); }
+      .apres-grille { margin-top: 1.25rem; }
+
+      .apprentissages { padding-left: 1.3rem; }
+      .apprentissages li { margin-bottom: 0.45rem; font-size: 0.93rem; color: var(--encre-douce); }
+
+      .phase {
+        background: var(--carte); border: 1px solid var(--regle-douce);
+        border-radius: 6px; padding: 1.25rem 1.4rem; margin-bottom: 0.85rem;
+      }
+      .phase-tete { display: flex; align-items: flex-start; gap: 0.9rem; margin-bottom: 0.75rem; }
+      .numero {
+        flex-shrink: 0; width: 2rem; height: 2rem; border-radius: 50%;
+        background: var(--bleu); color: #fff; font-weight: 700;
+        display: grid; place-items: center; font-size: 0.95rem;
+      }
+      .duree { font-size: 0.78rem; color: var(--encre-pale); margin: 0; }
+      .but { font-weight: 500; margin-bottom: 0.6rem; }
+      .phase ul { margin: 0 0 0.9rem; padding-left: 1.15rem; }
+      .phase li { margin-bottom: 0.35rem; font-size: 0.93rem; color: var(--encre-douce); }
+      .livrable {
+        font-size: 0.88rem; margin: 0; padding-top: 0.7rem;
+        border-top: 1px solid var(--regle-douce); color: var(--vert);
+      }
+      .livrable span {
+        font-size: 0.7rem; letter-spacing: 0.09em; text-transform: uppercase;
+        font-weight: 600; color: var(--encre-pale); margin-right: 0.5rem;
+      }
+
+      .entrevue { background: var(--carte); border-radius: 8px; padding: 1.75rem; border: 1px solid var(--regle); }
+      .budget { background: var(--papier); border-left: 3px solid var(--bleu); padding: 0.7rem 1rem; border-radius: 4px; }
+      .entrevue h3 { margin-top: 1.5rem; }
+      .fenetres { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.7rem; margin: 1.1rem 0; }
+      .fenetre {
+        display: flex; gap: 0.7rem; align-items: center; background: var(--papier);
+        border: 1px solid var(--regle-douce); border-radius: 6px; padding: 0.7rem 0.9rem;
+      }
+      .numero-f {
+        flex-shrink: 0; width: 1.7rem; height: 1.7rem; border-radius: 50%;
+        background: var(--encre); color: #fff; display: grid; place-items: center;
+        font-size: 0.82rem; font-weight: 700;
+      }
+      .fenetre p { margin: 0; font-size: 0.85rem; }
+      .ouverture { font-weight: 600; }
+      .fermeture { color: var(--encre-pale); }
+      .penalite {
+        font-size: 0.9rem; color: var(--encre); background: #fbeaef;
+        border-left: 3px solid var(--rose); padding: 0.8rem 1rem; border-radius: 4px;
+      }
+
+      .artefact {
+        background: var(--carte); border: 1px solid var(--regle-douce);
+        border-left: 3px solid var(--vert); border-radius: 6px;
+        padding: 1.1rem 1.3rem; margin-bottom: 0.8rem;
+      }
+      .artefact-tete { display: flex; gap: 0.9rem; align-items: flex-start; margin-bottom: 0.7rem; }
+      .artefact-tete .code {
+        flex-shrink: 0; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.04em;
+        color: var(--vert); background: #e4f0ed; border-radius: 4px;
+        padding: 0.25rem 0.5rem; margin-top: 0.15rem;
+      }
+      .artefact-tete h3 { margin: 0 0 0.2rem; }
+      .artefact-quoi { font-size: 0.9rem; color: var(--encre-douce); margin: 0; }
+      .artefact ul { margin: 0; padding-left: 1.15rem; }
+      .artefact li { font-size: 0.89rem; color: var(--encre-douce); margin-bottom: 0.35rem; }
+      .note-diagrammes {
+        font-size: 0.89rem; color: var(--encre-douce); background: var(--papier);
+        border-left: 3px solid var(--regle); padding: 0.8rem 1rem; border-radius: 4px;
+      }
+
+      .deux-colonnes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-top: 1.25rem; }
+      .attendu { background: var(--carte); border: 1px solid var(--regle-douce); border-radius: 6px; padding: 1rem 1.2rem; }
+      .attendu h3 { font-size: 0.98rem; margin-bottom: 0.6rem; }
+      .attendu ol { padding-left: 1.15rem; margin: 0; }
+      .attendu li { font-size: 0.87rem; color: var(--encre-douce); margin-bottom: 0.35rem; }
+
+      .interdits { padding-left: 1.15rem; }
+      .interdits li { color: var(--rose); font-size: 0.93rem; margin-bottom: 0.3rem; }
+      .pistes { padding-left: 1.15rem; }
+      .pistes li { font-size: 0.93rem; margin-bottom: 0.3rem; }
+      .avertissement {
+        font-size: 0.9rem; color: var(--encre-douce); background: var(--papier);
+        padding: 0.9rem 1.1rem; border-radius: 4px; margin-top: 1.25rem;
+      }
+
+      table { width: 100%; border-collapse: collapse; background: var(--carte); border-radius: 6px; overflow: hidden; }
+      th, td { text-align: left; padding: 0.75rem 0.9rem; border-bottom: 1px solid var(--regle-douce); font-size: 0.9rem; vertical-align: top; }
+      th { font-size: 0.72rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--encre-douce); background: var(--papier); }
+      .poids { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--bleu); white-space: nowrap; }
+
+      .critere { background: var(--carte); border: 1px solid var(--regle-douce); border-radius: 6px; padding: 1.1rem 1.3rem; margin-bottom: 0.75rem; }
+      .critere-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 0.75rem; }
+      .critere-tete h3 { margin: 0; }
+      .niveaux { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+      .niveaux span {
+        display: block; font-size: 0.7rem; letter-spacing: 0.09em;
+        text-transform: uppercase; font-weight: 600; margin-bottom: 0.25rem;
+      }
+      .niveaux p { font-size: 0.87rem; margin: 0; color: var(--encre-douce); }
+      .haut { border-left: 3px solid var(--vert); padding-left: 0.8rem; }
+      .haut span { color: var(--vert); }
+      .bas { border-left: 3px solid var(--regle); padding-left: 0.8rem; }
+      .bas span { color: var(--encre-pale); }
+
+      .note-ia { background: var(--encre); color: #fff; border-radius: 8px; padding: 1.6rem 1.75rem; }
+      .note-ia h2 { color: #fff; }
+      .note-ia p { color: #c7cdd3; margin: 0; }
+
+      @media (max-width: 40rem) {
+        .niveaux, .deux-colonnes { grid-template-columns: 1fr; }
+        .meta { gap: 1rem; }
+      }
+    </style>
+  </body>
+</html>
