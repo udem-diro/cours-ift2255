@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { ILLUSTRATIONS } from "./illustrations";
-import "./cardExplorer.css";
+import "./cardExplorerStyle.css";
 
 /* ---------- types ---------- */
 
