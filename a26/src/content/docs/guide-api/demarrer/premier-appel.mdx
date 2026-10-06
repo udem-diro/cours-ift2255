@@ -1,0 +1,142 @@
+---
+title: Premier appel
+description: Préparer son environnement et interroger l'API pour obtenir un cours.
+sidebar:
+  order: 2
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## L'adresse de l'API
+
+Toutes les routes commencent par la même **URL de base** :
+
+```
+https://planifium-api.onrender.com/api/v1
+```
+
+Un **point d'accès** (*endpoint*) est une adresse de l'API qui répond à un type de demande, par
+exemple `/courses` pour les cours ou `/programs` pour les programmes. On l'ajoute à l'URL de base.
+
+## Préparer son environnement
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+Aucune bibliothèque n'est nécessaire : `fetch` est disponible dans les navigateurs et dans
+Node.js 18 ou plus récent. Les exemples utilisent `await` au niveau du module : dans Node, donnez
+à votre fichier l'extension `.mjs`, ou placez le code dans une fonction `async`.
+</TabItem>
+<TabItem label="Python">
+Les exemples utilisent la bibliothèque `requests` (Python 3.10 ou plus récent) :
+
+```bash
+pip install requests
+```
+</TabItem>
+<TabItem label="Java">
+Les exemples utilisent le client HTTP de Java (`java.net.http`, Java 17 ou plus récent) et la
+bibliothèque **Jackson** pour lire et écrire le JSON. Avec Maven, ajoutez à votre `pom.xml` :
+
+```xml
+<dependency>
+  <groupId>com.fasterxml.jackson.core</groupId>
+  <artifactId>jackson-databind</artifactId>
+  <version>2.17.2</version>
+</dependency>
+```
+</TabItem>
+</Tabs>
+
+## Obtenir un cours
+
+Commençons par `GET /courses`, qui renvoie des cours. `GET` est la **méthode HTTP** utilisée pour
+lire des données. Les **paramètres de requête**, placés après le `?` de l'adresse, précisent ce
+qu'on veut : ici le cours IFT2255, avec le niveau de détail minimal.
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+const BASE_URL = "https://planifium-api.onrender.com/api/v1";
+
+const response = await fetch(`${BASE_URL}/courses?courses_sigle=IFT2255&response_level=min`);
+const courses = await response.json();
+
+console.log(courses[0].name);                       // « Génie logiciel »
+console.log(response.headers.get("X-Total-Count")); // nombre de cours trouvés
+```
+</TabItem>
+<TabItem label="Python">
+```python
+import requests
+
+BASE_URL = "https://planifium-api.onrender.com/api/v1"
+
+response = requests.get(f"{BASE_URL}/courses",
+                        params={"courses_sigle": "IFT2255", "response_level": "min"})
+courses = response.json()
+
+print(courses[0]["name"])                  # « Génie logiciel »
+print(response.headers["X-Total-Count"])   # nombre de cours trouvés
+```
+</TabItem>
+<TabItem label="Java">
+```java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class PremierAppel {
+    static final String BASE_URL = "https://planifium-api.onrender.com/api/v1";
+
+    public static void main(String[] args) throws Exception {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder(
+                URI.create(BASE_URL + "/courses?courses_sigle=IFT2255&response_level=min")).build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        JsonNode courses = new ObjectMapper().readTree(response.body());
+        System.out.println(courses.get(0).get("name").asText());                         // « Génie logiciel »
+        System.out.println(response.headers().firstValue("X-Total-Count").orElse("?"));  // nombre trouvé
+    }
+}
+```
+</TabItem>
+</Tabs>
+
+## Lire la réponse
+
+L'API renvoie une **liste** de cours, même quand on n'en demande qu'un :
+
+```json
+[
+  { "id": "IFT2255", "name": "Génie logiciel", "credits": 3.0 }
+]
+```
+
+Avec `response_level=min`, chaque cours ne contient que son sigle (`id`), son titre et ses crédits.
+Deux autres niveaux existent :
+
+| Niveau | Contenu |
+|---|---|
+| `min` | `id`, `name`, `credits` |
+| `reg` (par défaut) | en plus : `description`, `available_terms` (sessions), `available_periods` (jour, soir) |
+| `full` | en plus : le texte des exigences et leur forme structurée (`requirements`) |
+
+Un **en-tête** (*header*) est une information transmise à côté du contenu de la réponse.
+`X-Total-Count` donne le nombre total de cours qui correspondent à la demande, même si la réponse
+n'en contient qu'une partie : c'est utile pour afficher des pages de résultats
+(voir [Conventions](/guide-api/demarrer/conventions/#pagination)).
+
+## Explorer les routes de façon interactive
+
+La documentation interactive de l'API, générée automatiquement, liste toutes les routes et permet
+de les essayer depuis le navigateur :
+
+```
+https://planifium-api.onrender.com/docs
+```
+
+Elle est exhaustive mais peu commentée. Ce guide, lui, explique comment combiner les routes pour
+répondre à de vraies questions.

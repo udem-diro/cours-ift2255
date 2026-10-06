@@ -1,0 +1,45 @@
+---
+title: Routes
+description: Toutes les routes de l'API, avec leur rôle et le guide correspondant.
+sidebar:
+  order: 1
+---
+
+Tous les points d'accès commencent par `https://planifium-api.onrender.com/api/v1`. La documentation
+interactive (`https://planifium-api.onrender.com/docs`) donne le détail de chaque paramètre et
+permet d'essayer les routes.
+
+## Cours
+
+| Méthode | Route | Rôle | Guide |
+|---|---|---|---|
+| GET | `/courses` | Lister tout ou un sous ensemble du catalogue des cours ; total dans l'en-tête `X-Total-Count` | [Chercher des cours](/guide-api/guides/chercher-des-cours/) |
+| GET | `/courses/{course_id}` | Lister le détail d'un cours donné | [Cours](/guide-api/donnees/cours/) |
+| GET | `/courses/{course_id}/prerequisites` | Lister tous les préalables (directs et indirects) d'un cours donné | |
+| GET | `/courses-dependency` | Graphe des dépendances d'un cours : préalables et cours qui en dépendent | |
+| POST | `/courses/{course_id}/eligibility` | Vérifier l'éligibilité d'un profil à un cours donné | [Évaluation](/guide-api/donnees/evaluation/) |
+
+## Programmes et facultés
+
+| Méthode | Route | Rôle | Guide |
+|---|---|---|---|
+| GET | `/faculties` | Lister les facultés, départements et leurs programmes | [Programmes](/guide-api/donnees/programmes/#facultés) |
+| GET | `/programs` | Lister tout ou un sous ensemble du catalogue de programmes | [Explorer un programme](/guide-api/guides/explorer-un-programme/) |
+| GET | `/programs/{program_id}` | Lister le détail d'un programme donné | [Explorer un programme](/guide-api/guides/explorer-un-programme/) |
+| GET | `/programs/compare` | Comparer deux programmes | [Comparer des programmes](/guide-api/guides/comparer-des-programmes/) |
+| POST | `/programs/{program_id}/progress` | Voir la progression d'un étudiant dans un programe donné | [Progression](/guide-api/guides/progression/) |
+| POST | `/programs/{program_id}/eligible-courses` | Voir les cours du programme que l'étudiant peut suivre, avec filtres | [Vérifier un choix](/guide-api/guides/verifier-un-choix/) |
+
+## Horaires et planification
+
+| Méthode | Route | Rôle | Guide |
+|---|---|---|---|
+| GET | `/schedules` | Lister les horaires de cours, par session | [Horaires](/guide-api/donnees/horaires/) |
+| GET | `/schedules/ics` | Générer un fichier iCalendar des sections choisies | [Exporter un horaire](/guide-api/guides/exporter-ics/) |
+| POST | `/courseplan/check` | Vérifier un choix de cours pour une session | [Vérifier un choix](/guide-api/guides/verifier-un-choix/) |
+| POST | `/courseplan/generate` | Générer des horaires sans conflit | [Générer un horaire](/guide-api/guides/generer-un-horaire/) |
+
+:::note
+La route `/search/advanced` existe aussi, mais elle n'est pas couverte par ce guide : sa forme de
+réponse n'est pas encore stabilisée.
+:::

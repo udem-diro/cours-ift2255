@@ -1,0 +1,46 @@
+---
+title: Limites à connaître
+description: Ce que les données de l'API couvrent, et ce qu'elles ne garantissent pas.
+---
+
+L'API rassemble des données publiques de l'université et en déduit des calculs utiles. Ces données
+ont des limites ; une application honnête les rend visibles à ses utilisateurs.
+
+## Exigences des cours
+
+- **Source** : le répertoire des cours publié par l'université. Les exigences peuvent avoir changé
+  depuis sa publication.
+- **Analyse automatique** : environ 90 % des textes d'exigences sont entièrement compris
+  (`status: "exact"`). Les autres contiennent des conditions à vérifier (`manual`), ou ne sont pas
+  interprétés du tout.
+- **Conditions non vérifiables** : compétence équivalente, permission, test de classement,
+  crédits dans un programme, moyenne si elle n'est pas fournie. Elles donnent `unknown`.
+- **Les listes aplaties** (`prerequisite_courses`…) ne distinguent pas « et » de « ou » : préférez
+  `requirements`.
+
+Avant une décision importante (choix de cours, changement de programme), une vérification auprès
+du répertoire officiel ou d'une personne responsable des dossiers étudiants est recommandée.
+
+## Programmes
+
+- **Les crédits calculés** (`required`, `mandatory_credits`) additionnent les cours **listés** dans les
+  blocs ; le total officiel d'un programme est décrit en texte (`structure`).
+
+## Horaires
+
+- **Sessions disponibles** : seules certaines sessions ont des horaires dans la base de données. Pour une
+  session absente, la vérification des conflits et la génération d'horaires ne sont pas possibles.
+- **Instantané** : les horaires sont une copie à une date donnée (`updated_at`) ; les places
+  (`enrolled`, `capacity`) et les salles peuvent avoir changé.
+- **Codes bruts** : types d'activité (`TH`, `TP`…), modes (`P`, `HY`…) et heures (`15:29`) sont
+  renvoyés tels que publiés.
+
+## Calculs
+
+- **Aucune donnée personnelle conservée** : chaque calcul repose uniquement sur ce que la requête
+  envoie (cours réussis, programme, moyenne, crédits). Des données incomplètes donnent des résultats
+  incomplets.
+- **Génération d'horaires bornée** : pour garder des temps de réponse courts, la recherche s'arrête
+  après un certain nombre d'essais (`truncated: true`). De meilleures solutions peuvent alors exister.
+- **Pas d'inscription** : l'API aide à préparer un choix ; l'inscription se fait par les systèmes
+  officiels de l'université.

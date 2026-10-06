@@ -1,0 +1,188 @@
+---
+title: Générer un horaire
+description: Obtenir des combinaisons de sections sans conflit, classées selon des préférences.
+sidebar:
+  order: 5
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+{/* > **Question** : je dois suivre IFT2255 l'automne prochain, et je veux ajouter trois cours parmi
+> une liste. Je préfère garder le vendredi libre et ne rien commencer avant 9 h. */}
+
+:::note[Code des exemples]
+Les exemples réutilisent la constante `BASE_URL` et, en Java, un `HttpClient client` et un
+`ObjectMapper mapper`, présentés dans [Premier appel](/guide-api/demarrer/premier-appel/).
+:::
+
+`POST /courseplan/generate` cherche des combinaisons de sections pour **une session**, sans conflit
+de cours ni d'examen, parmi les cours que l'étudiant peut suivre.
+
+## Contraintes et préférences
+
+- Une **contrainte stricte** élimine toute solution qui ne la respecte pas.
+- Une **préférence** ne fait que **pénaliser** les solutions qui ne la respectent pas : elles restent
+  proposées, mais plus loin dans le classement.
+
+Contraintes toujours strictes : aucun conflit, les cours de `required` inclus, les bornes de
+`count` (nombre de cours) et de `credits`, des cours accessibles (préalables `yes`, ou `unknown`
+si `include_unknown` vaut `true`).
+
+| Préférence | Sens |
+|---|---|
+| `free_days` | Jours sans aucune rencontre : `["Ve"]` |
+| `earliest`, `latest` | Pas de rencontre avant / après cette heure : `"09:00"` |
+| `modes` | Modes acceptés : `["P"]` |
+| `max_campus_days` | Nombre maximal de jours de présence |
+| `exam_spacing_days` | Nombre minimal de jours entre deux examens |
+
+Chaque manquement ajoute à la **pénalité** le **poids** de sa préférence (1 par défaut, réglable avec
+`weights`). Une préférence listée dans `strict` devient une contrainte stricte.
+
+## La requête
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+const request = {
+  semester: "A26",
+  completed_courses: ["IFT1015", "IFT1025", "IFT1065", "IFT1215", "MAT1400"],
+  program_id: "117510",
+  required: ["IFT2255"],
+  candidates: ["IFT2015", "IFT2035", "IFT2125", "MAT1720", "STT1700"],
+  count: { min: 4, max: 4 },
+  constraints: {
+    free_days: ["Ve"],
+    earliest: "09:00",
+    weights: { free_days: 3, earliest: 1 },
+  },
+  limit: 5,
+  alternatives: 2,
+};
+const result = await (await fetch(`${BASE_URL}/courseplan/generate`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(request),
+})).json();
+
+for (const group of result.groups) {
+  console.log(group.courses.join(", "), "- pénalité", group.best.penalty, "- jours", group.best.campus_days.join(" "));
+  console.log("  sections :", group.best.sections.join(", "));
+}
+result.excluded.forEach(e => console.log("Écarté :", e.id, "-", e.reason));
+```
+</TabItem>
+<TabItem label="Python">
+```python
+request = {
+    "semester": "A26",
+    "completed_courses": ["IFT1015", "IFT1025", "IFT1065", "IFT1215", "MAT1400"],
+    "program_id": "117510",
+    "required": ["IFT2255"],
+    "candidates": ["IFT2015", "IFT2035", "IFT2125", "MAT1720", "STT1700"],
+    "count": {"min": 4, "max": 4},
+    "constraints": {
+        "free_days": ["Ve"],
+        "earliest": "09:00",
+        "weights": {"free_days": 3, "earliest": 1},
+    },
+    "limit": 5,
+    "alternatives": 2,
+}
+result = requests.post(f"{BASE_URL}/courseplan/generate", json=request).json()
+
+for group in result["groups"]:
+    best = group["best"]
+    print(", ".join(group["courses"]), "- pénalité", best["penalty"], "- jours", " ".join(best["campus_days"]))
+    print("  sections :", ", ".join(best["sections"]))
+for excluded in result["excluded"]:
+    print("Écarté :", excluded["id"], "-", excluded["reason"])
+```
+</TabItem>
+<TabItem label="Java">
+```java
+Map<String, Object> request = Map.of(
+        "semester", "A26",
+        "completed_courses", List.of("IFT1015", "IFT1025", "IFT1065", "IFT1215", "MAT1400"),
+        "program_id", "117510",
+        "required", List.of("IFT2255"),
+        "candidates", List.of("IFT2015", "IFT2035", "IFT2125", "MAT1720", "STT1700"),
+        "count", Map.of("min", 4, "max", 4),
+        "constraints", Map.of(
+                "free_days", List.of("Ve"),
+                "earliest", "09:00",
+                "weights", Map.of("free_days", 3, "earliest", 1)),
+        "limit", 5,
+        "alternatives", 2);
+JsonNode result = mapper.readTree(client.send(
+        HttpRequest.newBuilder(URI.create(BASE_URL + "/courseplan/generate"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(request))).build(),
+        HttpResponse.BodyHandlers.ofString()).body());
+
+for (JsonNode group : result.get("groups")) {
+    JsonNode best = group.get("best");
+    System.out.println(group.get("courses") + " - pénalité " + best.get("penalty").asDouble()
+            + " - jours " + best.get("campus_days"));
+    System.out.println("  sections : " + best.get("sections"));
+}
+result.get("excluded").forEach(e -> System.out.println("Écarté : " + e.get("id").asText() + " - " + e.get("reason").asText()));
+```
+</TabItem>
+</Tabs>
+
+## La réponse
+
+Les solutions qui ont **les mêmes cours** sont regroupées : chaque groupe donne le meilleur choix
+de sections (`best`), puis les suivants (`alternatives`).
+
+```json
+{
+  "semester": "A26",
+  "groups": [
+    {
+      "courses": ["IFT2015", "IFT2035", "IFT2255", "STT1700"],
+      "credits": 12.0,
+      "best": {
+        "courses": [ { "id": "IFT2255", "credits": 3.0, "parts": ["A26IFT2255A"], "eligibility": "yes" } ],
+        "sections": ["A26IFT2015A", "A26IFT2015A101", "A26IFT2035A", "A26IFT2255A", "A26STT1700B"],
+        "credits": 12.0,
+        "campus_days": ["Lu", "Ma", "Me", "Je"],
+        "penalty": 2.0,
+        "violations": ["avant 09:00 : IFT2015 TP Ma 08:30-10:29", "…"],
+        "to_verify": [],
+        "exam_warnings": []
+      },
+      "alternatives": [ "…" ],
+      "alternatives_found": 3
+    }
+  ],
+  "excluded": [ { "id": "IFT2245", "reason": "préalables non satisfaits : IFT2035" } ],
+  "truncated": false,
+  "explored": 199
+}
+```
+
+*Exemple illustratif.*
+
+| Champ | Contenu |
+|---|---|
+| `groups` | Un groupe par ensemble de cours, le meilleur d'abord ; `limit` porte sur le nombre de groupes |
+| `best.sections` | Sections et options à retenir, directement utilisables pour [exporter l'horaire](/guide-api/guides/exporter-ics/) |
+| `best.penalty` | Somme des poids des préférences non respectées (plus bas, c'est mieux) |
+| `best.violations` | Les préférences non respectées, en clair |
+| `best.to_verify` | Conditions d'éligibilité à vérifier pour les cours `unknown` |
+| `alternatives_found` | Nombre d'autres choix de sections trouvés pour ces cours, même s'ils ne sont pas tous renvoyés |
+| `excluded` | Cours écartés et pourquoi (préalables, déjà réussi, aucun horaire, aucune section compatible) |
+| `truncated` | `true` si la recherche a atteint sa limite : de meilleures solutions peuvent exister |
+
+À pénalité égale, les solutions sont classées par nombre de jours de présence, puis par crédits.
+
+## Pièges
+
+- **Aucun groupe renvoyé** : regardez `excluded`. Un cours de `required` écarté rend toute solution
+  impossible.
+- **Des contraintes strictes trop nombreuses** éliminent vite toutes les solutions : commencez avec
+  des préférences, puis rendez strictes celles qui comptent vraiment.
+- **Les horaires n'existent que pour certaines sessions** : pour une session absente de la base,
+  tous les cours sont écartés.
+- **Les activités sans horaire** (stages) ne créent jamais de conflit : vérifiez-les à part.

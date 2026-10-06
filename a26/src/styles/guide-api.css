@@ -1,0 +1,29 @@
+/* Apparence du guide de l'API, alignée sur le site du cours (polices et couleurs de Layout.astro). */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --sl-font: "Inter", system-ui, sans-serif;
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: #e3e8f2;
+  --sl-color-accent: #1b2437;
+  --sl-color-accent-high: #1b2437;
+  --sl-color-white: #1b2437;   /* titres */
+  --sl-color-bg: #fafbfd;      /* --papier */
+  --sl-color-bg-sidebar: #f3f6fb;
+  --sl-color-hairline-light: #dbe1ec;
+}
+
+:root[data-theme='dark'] {
+  --sl-color-accent-low: #253048;
+  --sl-color-accent: #8fa6d6;
+  --sl-color-accent-high: #dbe4f7;
+}
+
+.sl-markdown-content :is(h1, h2, h3, h4),
+h1#_top,
+.site-title {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}

@@ -1,0 +1,54 @@
+---
+title: Introduction
+description: Ce que l'API Planifium permet de faire, et ce qu'elle ne fait pas.
+sidebar:
+  order: 1
+---
+
+Planifium aide à planifier un parcours d'études à l'Université de Montréal : choisir ses cours,
+vérifier ses préalables, composer un horaire. Ce guide montre comment **exploiter son API** pour
+construire vos propres outils : une application web, un tableau de bord, un script d'analyse.
+
+## Les questions auxquelles l'API répond
+
+| Question | Où chercher |
+|---|---|
+| Quels cours parlent d'apprentissage automatique ? Lesquels sont offerts l'hiver ? | [Chercher des cours](/guide-api/guides/chercher-des-cours/) |
+| Comment est organisé tel programme ? Quels cours sont obligatoires ? | [Explorer un programme](/guide-api/guides/explorer-un-programme/) |
+| Où en est un étudiant dans son programme ? Quels cours peut-il suivre maintenant ? | [Progression](/guide-api/guides/progression/) |
+| Ce choix de cours pour l'automne est-il possible ? Y a-t-il des conflits d'horaire ? | [Vérifier un choix de cours](/guide-api/guides/verifier-un-choix/) |
+| Quels horaires sans conflit peut-on composer avec ces cours ? | [Générer un horaire](/guide-api/guides/generer-un-horaire/) |
+| Qu'ont en commun deux programmes ? | [Comparer des programmes](/guide-api/guides/comparer-des-programmes/) |
+| Comment mettre un horaire dans son agenda ? | [Exporter un horaire](/guide-api/guides/exporter-ics/) |
+
+## Les données couvertes
+
+- **Les cours** : sigle, titre, crédits, description, sessions et périodes où ils sont habituellement
+  offerts, et leurs **exigences** (préalables, cours concomitants, équivalences) sous forme structurée.
+- **Les programmes** : leurs parcours (orientations, cheminements…), segments et blocs de cours.
+- **Les horaires** : sections, rencontres hebdomadaires, examens et salles, session par session.
+- **Les facultés**, leurs départements et leurs programmes.
+
+## Ce que l'API ne fait pas
+
+- **Elle ne remplace pas les sources officielles.** Les exigences des cours proviennent du répertoire
+  des cours et sont analysées automatiquement : une partie est marquée « à vérifier ». Avant une
+  décision importante, consultez le répertoire officiel ou une personne responsable des dossiers.
+- **Elle ne gère pas de comptes et ne conserve rien.** L'API est en **lecture seule** : elle n'utilise
+  pas les comptes étudiant et n'a pas accès à leur dossier académique. Pour calculer une progression 
+  ou vérifier un choix de cours, c'est votre programme qui envoie les cours déjà réussis, à chaque requête.
+- **Elle ne fait pas l'inscription aux cours.** Elle aide à préparer un choix de cours, pas à l'enregistrer ni le soumettre.
+- **Les horaires ne couvrent que certaines sessions**, celles que la base de données contient au moment de la
+  requête.
+
+Les détails sont rassemblés dans la page [Limites à connaître](/guide-api/limites/).
+
+## Comment lire ce guide
+
+1. **Démarrer** : un premier appel, puis les conventions communes à toute l'API.
+2. **Comprendre les données** : la forme des cours, des programmes et des horaires renvoyés.
+3. **Guides pratiques** : un problème concret par page, avec du code complet.
+4. **Référence** : la liste des routes et la génération de types.
+
+Chaque exemple est donné en **JavaScript**, **Python** et **Java**. Choisissez votre langage dans les
+onglets : votre choix est conservé d'une page à l'autre.

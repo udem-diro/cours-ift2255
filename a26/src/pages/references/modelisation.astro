@@ -1,0 +1,364 @@
+---
+import ReferenceLayout from "../../layouts/ReferenceLayout.astro";
+
+// Les ancres (id des sections h2/h3) reprennent les identifiants de
+// src/data/concepts.json : la carte de l'accueil pourra pointer directement ici.
+const toc = [
+  { id: "modelisation-uml", label: "Modélisation UML" },
+  { id: "modele-donnees", label: "Modèle de données" },
+  { id: "principes-conception", label: "Principes de conception" },
+  { id: "patrons-conception", label: "Patrons de conception" },
+];
+---
+
+<ReferenceLayout
+  title="Modélisation et conception"
+  color="#0CA678"
+  intro="Représenter le système avant et pendant sa construction : les diagrammes qui décrivent sa structure et son comportement, le modèle de ses données, et les principes et patrons qui rendent une conception durable."
+  toc={toc}
+>
+  <section id="modelisation-uml" aria-labelledby="modelisation-uml-h">
+    <h2 id="modelisation-uml-h">Modélisation UML</h2>
+    <p class="ref-def">
+      UML (<em>Unified Modeling Language</em>) est un langage de modélisation graphique
+      standardisé qui définit 14 types de diagrammes, structurels et comportementaux. Chaque
+      diagramme offre une vue distincte du système : sa structure, ses interactions, ses
+      états. En pratique, on utilise un sous-ensemble bien choisi ; dans ce cours, trois
+      diagrammes portent l'essentiel du travail de conception.
+    </p>
+
+    <h3 id="diagrammes-classes">Diagramme de classes</h3>
+    <p>
+      Décrit la structure statique du logiciel : les classes, leurs attributs et opérations,
+      et les contraintes sur leurs relations.
+    </p>
+    <ul>
+      <li>
+        <strong>Visibilité</strong> : <code>-</code> private, <code>#</code> protected,
+        <code>~</code> package, <code>+</code> public.
+      </li>
+      <li>
+        <strong>Relations</strong> : association, agrégation, composition,
+        généralisation/spécialisation.
+      </li>
+      <li>
+        <strong>Multiplicité</strong> : nombre d'instances participant à une association
+        (<code>0..1</code>, <code>1</code>, <code>0..*</code>, <code>k..*</code>,
+        <code>n..m</code>).
+      </li>
+      <li>
+        <strong>Rôles</strong> : nom donné à une classe dans une association, qui précise sa
+        fonction sémantique ; indispensable pour les associations réflexives, où une classe
+        est associée à elle-même.
+      </li>
+    </ul>
+    <p>
+      Le même diagramme sert à deux moments distincts. En analyse, il capture les concepts du
+      domaine avec peu de détail. En conception, il devient une vue détaillée du design :
+      plus de classes que dans le modèle d'analyse, des attributs typés et des méthodes
+      caractérisées en pensant à l'implémentation.
+    </p>
+
+    <h3 id="diagrammes-sequence">Diagramme de séquence</h3>
+    <p>
+      Décrit un scénario en mettant en évidence les interactions entre les objets, instances
+      des classes du logiciel. Il montre la séquence, au cours du temps, des échanges de
+      messages entre les participants ; on produit en général un diagramme de séquence par
+      cas d'utilisation significatif.
+    </p>
+    <ul>
+      <li>
+        <strong>Types de messages</strong> : envoi d'un signal, invocation d'une opération,
+        création ou destruction d'une instance.
+      </li>
+      <li>
+        <strong>Message synchrone</strong> : l'émetteur attend la réponse du destinataire
+        avant de poursuivre. <strong>Message asynchrone</strong> : il poursuit son activité
+        sans attendre.
+      </li>
+      <li>
+        <strong>Fragments</strong> : sections démarquées du diagramme —
+        <code>OPT</code> (optionnel, comme un <code>if</code>),
+        <code>ALT</code> (alternatives, <code>if-then-else</code>),
+        <code>LOOP</code> (répétition), <code>REF</code> (référence à une autre interaction).
+      </li>
+    </ul>
+
+    <h3 id="diagrammes-etats">Diagramme d'états</h3>
+    <p>
+      Décrit le cycle de vie d'un objet : les états qu'il peut occuper et les transitions,
+      déclenchées par des événements, qui le font passer de l'un à l'autre. Une transition
+      peut porter une garde, c'est-à-dire une condition qui doit être vraie pour qu'elle se
+      déclenche. Ce diagramme est particulièrement adapté aux objets dont le comportement
+      dépend fortement de leur état : une commande (créée, payée, expédiée, livrée), un
+      billet de soutien, une session utilisateur.
+    </p>
+
+    <div class="ref-note">
+      <p>
+        <strong>Pour un premier modèle conceptuel</strong>, la décomposition ECB
+        (Entité-Contrôle-Interface, <em>Entity-Control-Boundary</em>) reste un bon réflexe :
+        classes d'entité pour l'information qui persiste, classes d'interface pour les
+        interactions avec les acteurs, classes de contrôle pour les calculs et la
+        coordination.
+      </p>
+    </div>
+
+    <div class="ref-note">
+      <p>
+        <strong>Outils</strong> : Mermaid et PlantUML permettent d'écrire les diagrammes de
+        classes, de séquence et d'états en texte, donc de les versionner avec le code du
+        projet et de les réviser en pull request comme n'importe quel autre artefact
+        (un artefact désigne ici tout produit du développement : code, modèle, document).
+      </p>
+    </div>
+
+    <div class="ref-ressources">
+      <p>Ressources</p>
+      <ul>
+        <li>
+          <a href="https://laurent-audibert.developpez.com/Cours-UML/" rel="external">
+            Laurent Audibert, UML 2 — De l'apprentissage à la pratique</a
+          > : cours en ligne complet, en français.
+        </li>
+        <li>
+          <a href="https://mermaid.js.org/" rel="external">Documentation de Mermaid</a> :
+          syntaxe des diagrammes de classes, de séquence et d'états.
+        </li>
+      </ul>
+    </div>
+    <p class="ref-voir">
+      Voir aussi : les cas d'utilisation et le diagramme d'activités, dans la page
+      <a href="/references/exigences/">Exigences et analyse</a>.
+    </p>
+  </section>
+
+  <section id="modele-donnees" aria-labelledby="modele-donnees-h">
+    <h2 id="modele-donnees-h">Modèle de données</h2>
+    <p class="ref-def">
+      Le modèle de données identifie l'information que le système doit conserver et la
+      structure qu'elle doit avoir. Il se construit en deux temps : un modèle conceptuel,
+      proche du domaine, puis sa traduction en schéma exploitable par un système de stockage.
+    </p>
+
+    <h3 id="entites-associations">Entités et associations</h3>
+    <p>
+      Une entité représente une chose du domaine dont on veut conserver l'information (un
+      membre, une séance, une facture) ; ses attributs la décrivent, et un identifiant la
+      distingue de toutes les autres. Les associations relient les entités entre elles et
+      portent une multiplicité, comme dans le diagramme de classes. Le modèle
+      entités-associations découle en général directement de l'analyse du domaine : le
+      glossaire fournit les entités candidates, les règles d'affaires fournissent les
+      contraintes.
+    </p>
+
+    <h3 id="schema-relationnel">Schéma relationnel</h3>
+    <p>
+      La traduction du modèle conceptuel en tables : chaque entité devient une table, chaque
+      ligne une instance, et les associations se réalisent par des clés. Une clé primaire
+      identifie chaque ligne de façon unique ; une clé étrangère référence la clé primaire
+      d'une autre table pour matérialiser une association. Les associations plusieurs à
+      plusieurs passent par une table intermédiaire. La normalisation, c'est-à-dire la
+      réorganisation du schéma pour éviter de dupliquer l'information, limite les incohérences,
+      même si l'on accepte parfois une dénormalisation ciblée pour des raisons de performance.
+    </p>
+
+    <h3 id="invariants">Invariants</h3>
+    <p>
+      Un invariant est une propriété du modèle qui doit rester vraie en tout temps, quelles
+      que soient les opérations effectuées : un solde qui ne descend pas sous zéro, une
+      inscription qui référence un membre existant, une date de fin postérieure à la date de
+      début. Expliciter les invariants pendant la conception guide ensuite l'implémentation
+      (validations, contraintes de la base de données) et les tests, qui cherchent justement
+      les scénarios susceptibles de les violer.
+    </p>
+
+    <p class="ref-voir">
+      Voir aussi : l'analyse du domaine (<a href="/references/exigences/">Exigences et
+      analyse</a>), qui alimente ce modèle, et les API qui l'exposent
+      (<a href="/references/architecture/">Architecture</a>).
+    </p>
+  </section>
+
+  <section id="principes-conception" aria-labelledby="principes-conception-h">
+    <h2 id="principes-conception-h">Principes de conception</h2>
+    <p class="ref-def">
+      Concevoir, c'est déterminer la structure interne du logiciel : comment il va atteindre
+      ses buts. Une bonne conception contribue directement à la qualité du logiciel, en
+      particulier à sa fiabilité et à sa facilité d'évolution. Deux mesures reviennent sans
+      cesse pour en juger : le couplage, degré d'interaction entre les modules, et la
+      cohésion, degré d'interaction au sein d'un module.
+    </p>
+
+    <h3 id="couplage-cohesion">Couplage et cohésion</h3>
+    <p>
+      La cible est presque toujours la même : faible couplage, forte cohésion. Les éléments
+      d'un module cohésif ne sont pas réunis par hasard, ils forment un tout pour réaliser
+      une tâche ; des modules faiblement couplés dépendent le moins possible les uns des
+      autres, ce qui permet de les comprendre, tester et modifier séparément. Robert Martin
+      nomme trois symptômes d'une conception qui a dévié :
+    </p>
+    <ul>
+      <li><strong>Rigidité</strong> : le logiciel est difficile à modifier, car chaque changement impacte trop de parties du système.</li>
+      <li><strong>Fragilité</strong> : quand on effectue une modification, des parties imprévues du système cessent de fonctionner.</li>
+      <li><strong>Immobilité</strong> : un composant est difficile à réutiliser ailleurs, car on ne peut pas le démêler de l'application courante.</li>
+    </ul>
+    <div class="pour-contre">
+      <div>
+        <p>Conception modulaire</p>
+        <ul>
+          <li>Maximise les relations au sein de chaque module</li>
+          <li>Minimise les relations entre les modules</li>
+          <li>Facilite la modification et la réutilisation</li>
+        </ul>
+      </div>
+      <div>
+        <p>Conception monolithique</p>
+        <ul>
+          <li>Fonctionnellement équivalente, mais difficile à comprendre</li>
+          <li>Difficile à étendre ou améliorer</li>
+          <li>Difficile à réutiliser dans un autre produit</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 id="encapsulation">Encapsulation et abstraction</h3>
+    <p>
+      L'encapsulation regroupe des concepts reliés en une seule unité, et la dissimulation
+      d'information cache derrière une interface stable les détails d'implémentation propices
+      à changer. L'interface d'un module, sa partie publique, répond à la question « quoi
+      offrir? » ; son implémentation, sa partie privée, répond à « comment le réaliser? ».
+      Concevoir un module ne devrait nécessiter que les interfaces des modules qu'il utilise.
+      L'abstraction complète le tableau : une décomposition intuitive, exprimée dans les
+      termes du problème, qui permet de se concentrer sur un module à la fois.
+    </p>
+
+    <h3 id="solid">SOLID</h3>
+    <p>
+      Cinq principes, popularisés par Robert Martin, qui condensent une bonne partie de ce qui
+      précède. Ce sont des guides pour raisonner, pas des lois : les appliquer mécaniquement
+      peut produire une conception plus complexe que le problème ne le justifie.
+    </p>
+    <dl>
+      <dt>S — Responsabilité unique (Single Responsibility)</dt>
+      <dd>Un module ne devrait avoir qu'une seule raison de changer.</dd>
+      <dt>O — Ouvert/fermé (Open/Closed)</dt>
+      <dd>Ouvert à l'extension, fermé à la modification : on ajoute du comportement sans réécrire l'existant.</dd>
+      <dt>L — Substitution de Liskov (Liskov Substitution)</dt>
+      <dd>Une instance d'une sous-classe doit pouvoir remplacer une instance de sa classe parente sans briser le programme.</dd>
+      <dt>I — Ségrégation des interfaces (Interface Segregation)</dt>
+      <dd>Plusieurs interfaces spécifiques valent mieux qu'une interface générale que personne n'implémente en entier.</dd>
+      <dt>D — Inversion des dépendances (Dependency Inversion)</dt>
+      <dd>Dépendre d'abstractions plutôt que d'implémentations concrètes.</dd>
+    </dl>
+
+    <div class="ref-note">
+      <p>
+        <strong>Réutiliser plutôt que réécrire</strong> : une librairie est un ensemble de
+        modules cohésifs et réutilisables dont vous gardez la logique de contrôle ; un
+        framework incorpore la logique de contrôle générique et c'est lui qui appelle votre
+        code. La distinction compte au moment de choisir vos dépendances.
+      </p>
+    </div>
+
+    <div class="ref-ressources">
+      <p>Ressources</p>
+      <ul>
+        <li>
+          <a href="https://refactoring.guru/fr" rel="external">Refactoring Guru (en français)</a> :
+          principes de conception, SOLID et refactorisation, avec illustrations.
+        </li>
+      </ul>
+    </div>
+    <p class="ref-voir">
+      Voir aussi : le refactoring, qui applique ces principes au code existant
+      (<a href="/references/implementation/">Implémentation et qualité du code</a>).
+    </p>
+  </section>
+
+  <section id="patrons-conception" aria-labelledby="patrons-conception-h">
+    <h2 id="patrons-conception-h">Patrons de conception</h2>
+    <p class="ref-def">
+      Un patron de conception décrit et nomme une solution abstraite à un problème de
+      conception récurrent. Le catalogue fondateur, publié en 1994 par Gamma, Helm, Johnson
+      et Vlissides (le « Gang of Four »), en recense 23, répartis en trois familles. La
+      solution proposée par un patron s'adapte aux besoins du logiciel ; leur valeur tient
+      autant au vocabulaire commun qu'ils donnent à l'équipe qu'aux solutions elles-mêmes.
+    </p>
+
+    <h3>Patrons de création</h3>
+    <dl>
+      <dt id="factory">Fabrique (Factory Method)</dt>
+      <dd>
+        Dissimule comment les objets sont créés : une interface de création dont les
+        sous-classes décident quelle classe instancier. Le code client reste indépendant de
+        la façon dont les objets sont construits, composés et représentés.
+      </dd>
+      <dt>Singleton</dt>
+      <dd>
+        Garantit qu'une classe n'a qu'une seule instance et offre un point d'accès global à
+        celle-ci. À utiliser avec parcimonie : l'accès global qu'il introduit crée un
+        couplage caché et complique les tests, ce qui en fait aujourd'hui un des patrons les
+        plus discutés.
+      </dd>
+    </dl>
+
+    <h3>Patrons de structure</h3>
+    <dl>
+      <dt>Composite</dt>
+      <dd>
+        Compose les objets en arborescences pour représenter des hiérarchies tout/partie, et
+        permet au client de traiter uniformément un objet simple et une composition d'objets.
+      </dd>
+      <dt>Adaptateur (Adapter)</dt>
+      <dd>
+        Fait communiquer deux objets aux interfaces incompatibles, sans coupler les clients à
+        l'implémentation interne de l'objet adapté. Typique quand on intègre une librairie
+        externe dont l'interface ne correspond pas à celle attendue par le reste du code.
+      </dd>
+    </dl>
+
+    <h3>Patrons de comportement</h3>
+    <dl>
+      <dt id="strategy">Stratégie (Strategy)</dt>
+      <dd>
+        Définit une famille d'algorithmes, encapsule chacun et les rend interchangeables :
+        l'algorithme varie indépendamment du client qui l'utilise (par exemple, plusieurs
+        politiques de calcul d'un tarif).
+      </dd>
+      <dt>Patron de méthode (Template Method)</dt>
+      <dd>
+        Définit le squelette d'un algorithme dans une opération, en reportant certaines
+        étapes aux sous-classes : les parties invariantes sont implémentées une seule fois,
+        le comportement qui varie est affiné sans changer la structure.
+      </dd>
+      <dt id="observer">Observateur (Observer)</dt>
+      <dd>
+        Établit une relation un-à-plusieurs entre un sujet et ses observateurs : quand l'état
+        du sujet change, tous les observateurs abonnés sont notifiés automatiquement. C'est
+        le mécanisme derrière la plupart des systèmes d'événements, des interfaces
+        graphiques aux flux de données réactifs.
+      </dd>
+    </dl>
+
+    <div class="ref-note">
+      <p>
+        <strong>Et MVC?</strong> Modèle-Vue-Contrôleur opère à une échelle plus large que les
+        patrons ci-dessus : c'est un patron d'architecture, traité avec les styles
+        architecturaux dans la page <a href="/references/architecture/">Architecture</a>.
+      </p>
+    </div>
+
+    <div class="ref-ressources">
+      <p>Ressources</p>
+      <ul>
+        <li>
+          <a href="https://refactoring.guru/fr/design-patterns" rel="external">
+            Catalogue des patrons, Refactoring Guru (en français)</a
+          > : chaque patron du GoF illustré, avec exemples de code en Java, Python et
+          TypeScript.
+        </li>
+      </ul>
+    </div>
+  </section>
+</ReferenceLayout>

@@ -1,0 +1,74 @@
+---
+import SiteHeader from "../components/SiteHeader.astro";
+// Police du titre, hébergée avec le site (comme sur le logo)
+import "@fontsource/caveat-brush";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = "IFT2255, Génie logiciel, Université de Montréal" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <SiteHeader />
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --papier: #fafbfd;
+    --papier-carte: #f3f6fb;
+    --encre: #1b2437;
+    --texte: #333d55;
+    --ligne: #dbe1ec;
+    --police-titres: "Space Grotesk", system-ui, sans-serif;
+    --police-texte: "Inter", system-ui, sans-serif;
+    --police-pinceau: "Caveat Brush", "Segoe Print", cursive;
+    --bleu: #3573dd;
+    --bleu-profond: #2c5eb4;
+    --bleu-clair: #7cacff;
+    --accent-cle: #d9480f;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    background: var(--papier);
+  }
+  body {
+    margin: 0;
+    font-family: var(--police-texte);
+    color: var(--texte);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--police-titres);
+    color: var(--encre);
+  }
+  a {
+    color: var(--encre);
+    text-underline-offset: 3px;
+  }
+  :focus-visible {
+    outline: 2px solid var(--encre);
+    outline-offset: 2px;
+  }
+</style>

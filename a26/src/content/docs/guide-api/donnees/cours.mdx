@@ -1,0 +1,113 @@
+---
+title: Cours
+description: Les champs d'un cours et ses exigences structurées.
+sidebar:
+  order: 1
+---
+
+Un cours est identifié par son **sigle** (`id`). Selon le niveau de détail demandé
+(`response_level`), la réponse contient plus ou moins de champs.
+
+## Champs
+
+| Champ | Niveau | Contenu |
+|---|---|---|
+| `id` | `min` | Sigle, par exemple `IFT2255` |
+| `name` | `min` | Titre du cours |
+| `credits` | `min` | Nombre de crédits |
+| `description` | `reg` | Description du répertoire |
+| `available_terms` | `reg` | Sessions où le cours est **habituellement** offert : `{ "autumn": true, "winter": false, "summer": true }` |
+| `available_periods` | `reg` | Périodes habituelles : `{ "daytime": true, "evening": false }` |
+| `schedules` | `reg` | Horaires, seulement avec `include_schedule=true` (voir [Horaires](/guide-api/donnees/horaires/)) |
+| `requirement_text` | `full` | Texte des exigences, tel que publié |
+| `prerequisite_courses`, `concomitant_courses`, `equivalent_courses` | `full` | Listes de sigles **aplaties** (voir plus bas) |
+| `requirements` | `full` | Exigences sous forme structurée |
+
+:::caution[« Habituellement » offert]
+`available_terms` décrit l'offre habituelle selon le répertoire, pas l'offre d'une session précise.
+Pour savoir si un cours est réellement donné à une session, consultez ses horaires.
+:::
+
+## Les exigences d'un cours
+
+Le répertoire décrit trois sortes d'exigences :
+
+- les **préalables** : des cours à réussir **avant** de s'inscrire ;
+- les **cours concomitants** : des cours à suivre **en même temps** (ou avant) ;
+- les **équivalences** : des cours qui comptent comme celui-ci.
+
+Les listes `prerequisite_courses` et `concomitant_courses` sont **aplaties** : elles énumèrent
+tous les sigles mentionnés, sans dire s'il faut tous les réussir ou seulement l'un d'eux. Pour
+« IFT1015 ou IFT1016 », la liste contient les deux sigles. Évitez de vous en servir pour décider
+de l'éligibilité : utilisez plutôt `requirements`, ou les routes d'éligibilité qui l'évaluent pour
+vous.
+
+## Le champ `requirements`
+
+`requirements` représente chaque exigence sous la forme d'un **arbre** : une structure dont chaque
+nœud est soit une condition simple (une **feuille**), soit une combinaison d'autres nœuds.
+
+```json
+{
+  "prerequisites": {
+    "type": "all",
+    "items": [
+      { "type": "any", "items": [ { "type": "course", "id": "PSY1004" }, { "type": "course", "id": "SOL1020" } ] },
+      { "type": "course", "id": "PSY1006" }
+    ]
+  },
+  "concomitants": null,
+  "equivalents": null,
+  "exclusions": [],
+  "notes": [],
+  "status": "exact",
+  "unparsed": []
+}
+```
+
+Cet arbre se lit : « (PSY1004 **ou** SOL1020) **et** PSY1006 ».
+
+### Types de nœuds
+
+| `type` | Champs | Sens |
+|---|---|---|
+| `course` | `id` | Avoir réussi ce cours (ou un cours équivalent) |
+| `all` | `items` | Toutes les conditions (« et ») |
+| `any` | `items` | Au moins une condition (« ou ») |
+| `at_least` | `count`, `items` | Au moins `count` conditions parmi `items` (« 3 des 4 cours suivants ») |
+| `credits` | `min`, `max`, `scope` | Un nombre de crédits réussis, éventuellement limité à certains cours |
+| `program` | `ids` | Être inscrit à l'un de ces programmes |
+| `when` | `condition`, `then` | Exigence qui ne s'applique que si la condition est remplie (« pour les étudiants du programme X ») |
+| `gpa` | `min` | Une moyenne cumulative minimale |
+| `manual` | `text` | Une condition qu'une personne doit vérifier : « compétence équivalente », « permission du professeur »… |
+
+La portée (`scope`) d'un nœud `credits` peut contenir :
+
+- `prefixes` : seulement les crédits de certains sigles (IFT, MAT…) ;
+- `range` : seulement une série de sigles (de DIN3011 à DIN3019) ;
+- `programs` : seulement les crédits obtenus dans un programme (`*` désigne celui de l'étudiant) ;
+- `excluding` : des cours à ne pas compter (« 6 **autres** crédits de sigle GEO ») ;
+- `text` : une portée décrite seulement en mots (crédits obligatoires, segments, niveau).
+
+### Les autres champs
+
+- `exclusions` : des cours qui **empêchent** l'inscription s'ils sont déjà réussis.
+- `notes` : des remarques du répertoire qui ne sont pas des exigences.
+- `unparsed` : des fragments de texte que l'analyse n'a pas compris.
+- `status` : la qualité de l'analyse du texte.
+
+| `status` | Sens |
+|---|---|
+| `exact` | Tout le texte a été compris |
+| `partial` | La structure est comprise, mais au moins une condition est à vérifier (`manual`) |
+| `manual` | Rien n'a pu être interprété : tout est à vérifier |
+| `none` | Le cours n'a pas d'exigences |
+
+:::note[Pourquoi des conditions « manual » ?]
+Les exigences sont rédigées en français par des dizaines de départements. Quand une formulation
+n'est pas reconnue, l'API la conserve telle quelle dans un nœud `manual` plutôt que de deviner son
+sens. Votre application devrait afficher ces textes à l'utilisateur plutôt que de les ignorer.
+:::
+
+L'évaluation de ces arbres à partir des cours réussis d'un étudiant est expliquée dans
+[Évaluation des exigences](/guide-api/donnees/evaluation/).

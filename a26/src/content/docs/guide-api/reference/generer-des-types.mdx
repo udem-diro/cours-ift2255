@@ -1,0 +1,77 @@
+---
+title: Générer des types
+description: Produire automatiquement les types de l'API en TypeScript, Python ou Java.
+sidebar:
+  order: 2
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+L'API publie une description complète de ses routes et de ses réponses au format **OpenAPI** (un
+format standard de description d'API) :
+
+```
+https://planifium-api.onrender.com/api/v1/openapi.json
+```
+
+Des outils peuvent lire ce fichier et **générer** les types correspondants : vous n'avez pas à les écrire
+à la main, et un changement de l'API se répercute en relançant la génération.
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+En TypeScript, avec `openapi-typescript` :
+
+```bash
+npx openapi-typescript https://planifium-api.onrender.com/api/v1/openapi.json -o src/planifium.d.ts
+```
+
+```ts
+import type { components } from "./planifium";
+
+type Course = components["schemas"]["CourseRegular"];
+type Schedules = components["schemas"]["SchedulesResponse"];
+
+const response = await fetch(`${BASE_URL}/courses?courses_sigle=IFT2255`);
+const courses: Course[] = await response.json();
+console.log(courses[0].available_terms.autumn);   // vérifié par TypeScript
+```
+
+La bibliothèque `openapi-fetch`, du même auteur, ajoute un client dont les paramètres et les
+réponses sont typés d'après le même fichier.
+</TabItem>
+<TabItem label="Python">
+Avec `datamodel-code-generator`, qui produit des modèles Pydantic :
+
+```bash
+pip install datamodel-code-generator
+datamodel-codegen --url https://planifium-api.onrender.com/api/v1/openapi.json --input-file-type openapi \
+                  --output planifium_models.py
+```
+
+```python
+from planifium_models import SchedulesResponse
+
+data = requests.get(f"{BASE_URL}/schedules", params={"courses": "IFT2255", "semester": "A26"}).json()
+schedules = SchedulesResponse.model_validate(data)   # valide la réponse et donne des objets typés
+print(schedules.semesters[0].courses[0].sections[0].id)
+```
+</TabItem>
+<TabItem label="Java">
+Avec **OpenAPI Generator**, qui produit des classes de modèle et un client :
+
+```bash
+npx @openapitools/openapi-generator-cli generate \
+    -i https://planifium-api.onrender.com/api/v1/openapi.json \
+    -g java --library native -o planifium-client \
+    --additional-properties=packageName=ca.umontreal.planifium
+```
+
+Le projet généré (Maven) contient une classe par schéma (`CourseRegular`, `SchedulesResponse`…) et
+une classe par groupe de routes. Pour ne générer que les modèles et garder votre propre code
+d'appel, ajoutez `--global-property models`.
+</TabItem>
+</Tabs>
+
+:::tip
+Les noms des schémas (`CourseRegular`, `SchedulesResponse`, `PlanCheckResponse`…) sont visibles dans
+la documentation interactive, en bas de la page `/docs`.
+:::

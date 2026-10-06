@@ -1,0 +1,74 @@
+---
+// Carte des concepts du cours (déplacée de la page d'accueil)
+import Layout from "../layouts/Layout.astro";
+import ConceptGraph from "../components/ConceptGraph";
+import graphData from "../data/concepts.json";
+import { phases } from "../data/accueil";
+
+// La phase en cours du projet est présélectionnée dans la carte
+const enCours = phases.find((p) => p.enCours);
+const defaultPhase = enCours ? `p${enCours.num}` : null;
+---
+
+<Layout title="Carte des concepts, IFT2255" description="Les concepts du cours IFT2255 et leurs liens, phase par phase.">
+  <header class="entete">
+    <div class="entete-contenu">
+      <h1>Carte des concepts</h1>
+      <p>
+        Les concepts du cours, regroupés en thèmes et reliés entre eux, et la phase du projet où
+        chacun sert.
+      </p>
+    </div>
+  </header>
+
+  <main class="carte">
+    <ConceptGraph client:load data={graphData} defaultPhase={defaultPhase} />
+  </main>
+
+  <footer class="pied">
+    <p><a href="/">Retour à l'accueil</a></p>
+  </footer>
+</Layout>
+
+<style>
+  .entete {
+    background: var(--bleu);
+    color: #fff;
+  }
+  .entete-contenu,
+  .carte,
+  .pied p {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+  .entete-contenu {
+    padding-top: 3.6rem; /* laisse la place au logo qui déborde de la barre */
+    padding-bottom: 1.6rem;
+  }
+  h1 {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.9rem, 4vw, 2.5rem);
+    letter-spacing: -0.01em;
+    color: #fff;
+  }
+  .entete p {
+    margin: 0;
+    max-width: 44rem;
+    line-height: 1.6;
+    color: #e6eeff;
+  }
+  .carte {
+    padding-top: 0.5rem;
+    padding-bottom: 3rem;
+  }
+  .pied {
+    border-top: 1px solid var(--ligne);
+  }
+  .pied p {
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
+    font-size: 0.88rem;
+  }
+</style>

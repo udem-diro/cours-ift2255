@@ -1,17 +1,538 @@
 ---
+import Layout from "../layouts/Layout.astro";
+import { echelle, questions, etapes, phases, groupes, liens, messages, projetEnCours } from "../data/accueil";
 
+// Typographie française : espace insécable avant ? ! : ; » et après «
+const fr = (texte: string) => texte.replace(/ ([?!:;»])/g, "\u00a0$1").replace(/« /g, "«\u00a0");
+// Passage clé : **texte** devient un passage mis en évidence (le contenu vient de src/data, pas des utilisateurs)
+const echapper = (texte: string) => texte.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const cle = (texte: string) => fr(echapper(texte)).replace(/\*\*(.+?)\*\*/g, '<span class="cle">$1</span>');
+const chip = (terme: string) => terme.toLowerCase();
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="IFT2255, Génie logiciel">
+  <section class="hero" aria-labelledby="titre-cours">
+    <div class="hero-grille">
+      <div class="hero-texte">
+        <p class="sigle"><span class="sigle-ift">IFT</span><span class="sigle-num">2255</span></p>
+        <h1 id="titre-cours">Génie logiciel</h1>
+        <p class="these">Apprendre à bien concevoir et implémenter le bon logiciel.</p>
+        <p class="ouverture">
+          Ce cours porte sur ce qui précède et encadre le code&nbsp;: comprendre une intention, la traduire
+          en exigences, la modéliser, puis concevoir et tester une solution qui pourra évoluer. 
+          <br>
+          Le cours vise également à développer une méthodologie de développement et une maitrise des outils
+          de programmation et collaboration. Un projet mené en équipe en est le fil conducteur.
+        </p>
+      </div>
+
+      <figure class="echelle" aria-label="De l'intention à l'exigence">
+        <ol>
+          {echelle.map((etape) => (
+            <li class={`echelon echelon-${chip(etape.terme)}`}>
+              <span class={`pastille pastille-${chip(etape.terme)}`}>{etape.terme}</span>
+              <blockquote>{fr(`« ${etape.texte} »`)}</blockquote>
+              {etape.terme === "Demande" && (
+                <aside class="annotation">
+                  <svg class="annotation-trait" aria-hidden="true"><line x1="0" y1="0" x2="0" y2="100%" /></svg>
+                  La demande est souvent <strong>une hypothèse de solution</strong>&nbsp;: c'est l'intention qui permet de la vérifier.
+                </aside>
+              )}
+            </li>
+          ))}
+        </ol>
+      </figure>
+    </div>
+  </section>
+  <div class="hero-bande">
+    <p class="contenu">
+      <span>Université de Montréal, automne 2026</span>
+      <span class="hero-etat">{fr(projetEnCours)}</span>
+    </p>
+  </div>
+
+  <main>
+    <!-- <section class="bande questions" aria-labelledby="titre-questions">
+      <div class="contenu">
+        <h2 id="titre-questions">Les questions qui guident le cours</h2>
+        <p class="chapeau">
+          Les méthodes et les diagrammes changent d'un projet à l'autre. Ces questions, elles, reviennent
+          à chaque étape.
+        </p>
+        <ul class="liste-questions">
+          {questions.map((q) => (
+            <li>
+              <p class="question">{fr(q.question)}</p>
+              <p class="reponse" set:html={cle(q.texte)} />
+            </li>
+          ))}
+        </ul>
+        <p class="message-cle">{fr(messages.questions)}</p>
+      </div>
+    </section> -->
+
+    <section class="contenu parcours" aria-labelledby="titre-parcours">
+      <h2 id="titre-parcours">Du problème flou au système livré</h2>
+      <p class="chapeau">
+        Le cours suit le chemin d'un projet réel, et chaque phase du projet de session en couvre une partie.
+      </p>
+      <div class="frise">
+        <ol class="etapes">
+          {etapes.map((etape, i) => (
+            <li style={`grid-column: ${i + 1}`}>
+              <span class="numero" aria-hidden="true">{i + 1}</span>
+              <span class="etape">{etape}</span>
+            </li>
+          ))}
+        </ol>
+        <ul class="phases">
+          {phases.map((phase) => (
+            <li class:list={{ "phase-en-cours": phase.enCours }} style={`grid-column: ${phase.debut} / ${phase.fin + 1}`}>
+              <span class="phase-titre">{fr(`Phase ${phase.num} : ${phase.titre}`)}</span>
+              {phase.etat && <span class="phase-echeance">{phase.etat}</span>}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class="contenu thematiques" aria-labelledby="titre-thematiques">
+      <h2 id="titre-thematiques">Les thématiques étudiées</h2>
+      <!-- <p class="chapeau">
+        Regroupées selon les thèmes de la <a href="/carte/">carte des concepts</a>, dont elles reprennent
+        les couleurs.
+      </p> -->
+      {groupes.map((groupe) => (
+        <section class:list={["groupe", { "a-venir": groupe.aVenir }]} style={`--couleur: ${groupe.couleur}`}>
+          <h3 class="groupe-titre">{groupe.theme}</h3>
+          <div class="groupe-liste">
+            {groupe.thematiques.map((t) => (
+              <article class="thematique">
+                <h4>{t.titre}</h4>
+                <p>{fr(t.texte)}</p>
+                <p class="notions"><span>Notions&nbsp;:</span> {t.notions.join(", ")}.</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
+      <!-- <p class="message-cle">{fr(messages.thematiques)}</p> -->
+    </section>
+
+    <section class="bande projet" aria-labelledby="titre-projet">
+      <div class="contenu">
+        <h2 id="titre-projet">Le projet de session : <span style="color: crimson;">Mon cheminement</span></h2>
+        <p class="chapeau">
+          Mené comme un vrai mandat, le projet part de l'analyse d'un prototype existant et de son contexte
+          réel, pour aboutir à une plateforme conçue, implémentée, testée et déployée par votre équipe.
+          L'énoncé de chaque phase est publié au fil de la session.
+        </p>
+        <ul class="liens">
+          {liens.map((lien) => (
+            <li>
+              <a href={lien.href}>{lien.titre}</a>
+              <span>{fr(lien.texte)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pied">
+    <p class="contenu">IFT2255 &ndash; Génie logiciel, DIRO (Université de Montréal)
+      <br><b>Automne 2026</b>
+      <br>Enseignant : Louis-Edouard Lafontant
+    </p>
+  </footer>
+</Layout>
+
+<style>
+  /* ---------- gabarit ---------- */
+  .contenu {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+  .bande {
+    background: var(--papier-carte);
+    border-top: 1px solid var(--ligne);
+    border-bottom: 1px solid var(--ligne);
+  }
+  section.contenu,
+  .bande > .contenu {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+  h2 {
+    margin: 0 0 0.6rem;
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    letter-spacing: -0.01em;
+  }
+  .chapeau {
+    max-width: 40rem;
+    margin: 0 0 2.4rem;
+    font-size: 1.06rem;
+    line-height: 1.65;
+  }
+
+  /* ---------- en-tête : le bloc bleu du logo ---------- */
+  .hero {
+    background: var(--bleu);
+    color: #fff;
+  }
+  .hero-grille {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 4.75rem 1.25rem 3.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.1fr);
+    gap: 3.5rem;
+    align-items: center;
+  }
+  .sigle {
+    margin: 0;
+    font: 700 1.35rem/1 var(--police-titres);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+  .sigle-ift {
+    color: var(--bleu-clair);
+  }
+  .sigle-num {
+    color: #fff;
+  }
+  h1 {
+    margin: 0.35rem 0 1.2rem;
+    font-family: var(--police-pinceau);
+    font-weight: 400;
+    font-size: clamp(3.2rem, 7vw, 4.6rem);
+    line-height: 1;
+    color: #fff;
+  }
+  .these {
+    margin: 0 0 1.1rem;
+    max-width: 20ch;
+    font: 600 clamp(1.3rem, 2.4vw, 1.65rem) / 1.3 var(--police-titres);
+    color: #fff;
+  }
+  .ouverture {
+    margin: 0;
+    max-width: 33rem;
+    font-size: 1.04rem;
+    line-height: 1.65;
+    color: #e6eeff;
+  }
+  .hero-bande {
+    background: var(--bleu-profond);
+    color: #fff;
+  }
+  .hero-bande p {
+    margin: 0 auto;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 2rem;
+    font-size: 0.92rem;
+  }
+  .hero-etat {
+    color: #c9d9fa;
+  }
+
+  /* L'échelle : carte blanche, pastilles des diapositives */
+  .echelle {
+    margin: 0;
+    padding: 1.4rem 1.5rem 1.1rem;
+    background: #fff;
+    border-radius: 8px;
+    color: var(--texte);
+  }
+  .echelle ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .echelon {
+    position: relative;
+    display: grid;
+    grid-template-columns: 6.2rem minmax(0, 1fr);
+    gap: 0.9rem;
+    align-items: start;
+    padding: 0.55rem 0;
+  }
+  .pastille {
+    display: block;
+    padding: 0.32rem 0;
+    border-radius: 4px;
+    text-align: center;
+    font: 600 0.82rem/1.2 var(--police-texte);
+  }
+  .pastille-intention { background: #444; color: #fff; }
+  .pastille-demande { background: #FFD700; color: #222; }
+  .pastille-besoin { background: royalblue; color: #fff; }
+  .pastille-exigence { background: crimson; color: #fff; }
+  .echelon blockquote {
+    margin: 0;
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+  .echelon-demande blockquote {
+    font-weight: 500;
+    color: var(--encre);
+  }
+  /* Annotation à trait de rappel, comme dans les diapositives : sous la demande, reliée par un filet */
+  .annotation {
+    position: relative;
+    grid-column: 2;
+    justify-self: start;
+    max-width: 19rem;
+    margin-top: 0.85rem;
+    padding: 0.45rem 0.65rem;
+    background: #f3f4f6;
+    border: 1px solid var(--encre);
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--encre);
+  }
+  .annotation-trait {
+    position: absolute;
+    left: 1.5rem;
+    top: calc(-0.85rem - 1px);
+    width: 1px;
+    height: 0.85rem;
+    overflow: visible;
+    stroke: var(--encre);
+    stroke-width: 1;
+  }
+
+  /* Un seul mouvement : la demande d'abord, puis le reste s'organise, l'annotation en dernier */
+  @media (prefers-reduced-motion: no-preference) {
+    .echelon-intention,
+    .echelon-besoin,
+    .echelon-exigence,
+    .annotation {
+      animation: apparaitre 0.55s ease-out both;
+    }
+    .echelon-intention { animation-delay: 0.6s; }
+    .echelon-besoin { animation-delay: 1.1s; }
+    .echelon-exigence { animation-delay: 1.6s; }
+    .annotation { animation-delay: 2.3s; }
+  }
+  @keyframes apparaitre {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* ---------- messages clés et passages mis en évidence ---------- */
+  .message-cle {
+    margin: 2.2rem 0 0;
+    padding: 0.85rem 1.2rem;
+    background: var(--bleu-profond);
+    border-radius: 4px;
+    color: #fff;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.45;
+  }
+  :global(.cle) {
+    color: var(--accent-cle);
+    font-weight: 600;
+  }
+
+  /* ---------- questions ---------- */
+  .liste-questions {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .liste-questions li {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 2.5rem;
+    padding: 1.6rem 0;
+    border-top: 1px solid var(--ligne);
+  }
+  .question {
+    margin: 0;
+    font: 600 clamp(1.2rem, 2.2vw, 1.45rem) / 1.3 var(--police-titres);
+    color: var(--encre);
+  }
+  .reponse {
+    margin: 0;
+    max-width: 36rem;
+    line-height: 1.65;
+  }
+
+  /* ---------- parcours ---------- */
+  .frise {
+    display: grid;
+    gap: 0.9rem;
+  }
+  .etapes,
+  .phases {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  .etapes li {
+    grid-row: 1;
+    border-top: 3px solid var(--encre);
+    padding-top: 0.7rem;
+  }
+  .numero {
+    display: block;
+    font: 600 1.9rem/1 var(--police-titres);
+    color: #9aa3b5;
+  }
+  .etape {
+    display: block;
+    margin-top: 0.35rem;
+    font: 600 1.05rem/1.3 var(--police-titres);
+    color: var(--encre);
+  }
+  .phases li {
+    grid-row: 1;
+    padding: 0.7rem 0.85rem;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--encre) 6%, var(--papier));
+    border-left: 3px solid #4263eb;
+  }
+  .phase-en-cours {
+    background: color-mix(in srgb, var(--bleu) 12%, #fff) !important;
+    border-left-color: var(--bleu-profond) !important;
+  }
+  .phase-titre {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--encre);
+  }
+  .phase-echeance {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.82rem;
+    color: #5a6478;
+  }
+
+  /* ---------- thématiques ---------- */
+  .groupe {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    gap: 2.5rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--ligne);
+  }
+  .groupe-titre {
+    margin: 0;
+    padding-top: 0.6rem;
+    border-top: 4px solid var(--couleur);
+    font-size: 1.15rem;
+    line-height: 1.3;
+  }
+  .groupe-liste {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+    gap: 2rem 2.5rem;
+  }
+  .thematique h4 {
+    margin: 0 0 0.4rem;
+    font: 600 1.08rem/1.3 var(--police-titres);
+    color: var(--encre);
+  }
+  .thematique p {
+    margin: 0 0 0.6rem;
+    line-height: 1.6;
+  }
+  .notions {
+    font-size: 0.9rem;
+    color: #5a6478;
+  }
+  .notions span {
+    font-weight: 600;
+    color: var(--texte);
+  }
+  .a-venir .groupe-titre,
+  .a-venir .thematique h4 {
+    color: #6b7489;
+  }
+  .a-venir .thematique p {
+    color: #6b7489;
+  }
+
+  /* ---------- projet ---------- */
+  .liens {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 1.4rem 2.5rem;
+  }
+  .liens li {
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--ligne);
+  }
+  .liens a {
+    display: inline-block;
+    font: 600 1.05rem/1.3 var(--police-titres);
+  }
+  .liens span {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: 0.93rem;
+    line-height: 1.5;
+    color: #5a6478;
+  }
+
+  /* ---------- pied de page ---------- */
+  .pied p {
+    padding-top: 1.3rem;
+    padding-bottom: 1.3rem;
+    margin: 0 auto;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #5a6478;
+  }
+
+  /* ---------- petits écrans ---------- */
+  @media (max-width: 860px) {
+    .hero-grille {
+      grid-template-columns: 1fr;
+      gap: 2.2rem;
+      padding-top: 4rem;
+    }
+    .echelon {
+      grid-template-columns: 5.6rem minmax(0, 1fr);
+    }
+    .liste-questions li,
+    .groupe {
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
+    }
+    .frise {
+      grid-template-columns: 1fr;
+    }
+    .etapes,
+    .phases {
+      grid-template-columns: 1fr;
+    }
+    .etapes li,
+    .phases li {
+      grid-column: auto !important;
+      grid-row: auto;
+    }
+    .etapes li {
+      display: flex;
+      align-items: baseline;
+      gap: 0.8rem;
+    }
+    .etape {
+      margin-top: 0;
+    }
+  }
+</style>

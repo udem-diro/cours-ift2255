@@ -1,0 +1,128 @@
+---
+title: Comparer des programmes
+description: Les cours communs à deux programmes et la répartition de leurs crédits.
+sidebar:
+  order: 6
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+{/* > **Question** : si je passe du baccalauréat en informatique au baccalauréat en mathématiques et
+> informatique, quels cours obligatoires ai-je déjà en commun ? */}
+
+:::note[Code des exemples]
+Les exemples réutilisent la constante `BASE_URL` et, en Java, un `HttpClient client` et un
+`ObjectMapper mapper`, présentés dans [Premier appel](/guide-api/demarrer/premier-appel/).
+:::
+
+## La requête
+
+`GET /programs/compare?programs=A,B`
+
+| Paramètre | Rôle |
+|---|---|
+| `programs` | Deux identifiants de programme distincts **(obligatoire)** |
+| `path_a`, `path_b` | Limiter la comparaison à un parcours de chaque programme |
+| `details` | `true` pour l'emplacement complet de chaque cours dans l'autre programme (segment, bloc, équivalence) |
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+const comparison = await (await fetch(`${BASE_URL}/programs/compare?programs=117510,117210`)).json();
+const { mandatory_in_both, option_in_both } = comparison.a_and_b;
+
+console.log(`Obligatoires dans les deux : ${mandatory_in_both.credits} crédits`);
+mandatory_in_both.courses.forEach(c => console.log(" ", c.id, c.name));
+console.log(`À option dans les deux : ${option_in_both.credits} crédits`);
+```
+</TabItem>
+<TabItem label="Python">
+```python
+comparison = requests.get(f"{BASE_URL}/programs/compare", params={"programs": "117510,117210"}).json()
+both = comparison["a_and_b"]
+
+print(f"Obligatoires dans les deux : {both['mandatory_in_both']['credits']} crédits")
+for course in both["mandatory_in_both"]["courses"]:
+    print(" ", course["id"], course["name"])
+print(f"À option dans les deux : {both['option_in_both']['credits']} crédits")
+```
+</TabItem>
+<TabItem label="Java">
+```java
+JsonNode comparison = mapper.readTree(client.send(
+        HttpRequest.newBuilder(URI.create(BASE_URL + "/programs/compare?programs=117510,117210")).build(),
+        HttpResponse.BodyHandlers.ofString()).body());
+JsonNode mandatory = comparison.get("a_and_b").get("mandatory_in_both");
+
+System.out.println("Obligatoires dans les deux : " + mandatory.get("credits").asDouble() + " crédits");
+mandatory.get("courses").forEach(c -> System.out.println("  " + c.get("id").asText() + " " + c.get("name").asText()));
+```
+</TabItem>
+</Tabs>
+
+## La réponse
+
+La réponse a trois parties.
+
+### 1. Chaque programme, avec sa structure
+
+`program_a` et `program_b` reprennent chaque programme par parcours, segment et bloc. Chaque cours
+indique où il se trouve **dans l'autre programme** (`in_other_program`), et chaque parcours rappelle
+ses crédits obligatoires et les fourchettes de ses blocs à option et au choix.
+
+```json
+"program_a": {
+  "id": "117510", "name": "Baccalauréat en informatique",
+  "paths": [
+    { "title": "Science des données", "kind": "orientation",
+      "credits": { "required": 54, "option": { "min": 9, "max": 15 }, "choice": { "min": 6, "max": 6 } },
+      "segments": [
+        { "id": "01", "name": "…", "blocs": [
+          { "bloc_id": "01A", "bloc_name": "…", "type": "Obligatoire", "min": 33, "max": 33,
+            "shared_course_count": 6, "shared_credits": 18,
+            "courses": [
+              { "id": "IFT2255", "name": "Génie logiciel", "credits": 3,
+                "in_other_program": [ { "path_title": null, "type": "option" } ] }
+            ] }
+        ] }
+      ] }
+  ]
+}
+```
+
+### 2. Ce qui est commun (`a_and_b`)
+
+- `mandatory_in_both` : les cours obligatoires dans les deux programmes ;
+- `option_in_both` : les cours à option dans les deux.
+
+Chaque cours indique les parcours concernés de chaque côté (`paths_a`, `paths_b`) et, le cas échéant,
+le cours équivalent de l'autre programme (`via_equivalent`).
+
+### 3. La répartition des crédits (`a_to_b`, `b_to_a`)
+
+Un **tableau croisé** répartit les crédits des cours d'un programme selon leur catégorie dans ce
+programme (lignes) et dans l'autre (colonnes) :
+
+```json
+"a_to_b": {
+  "source_program": "117510", "target_program": "117210",
+  "source_path": null, "target_path": null,
+  "rows": [
+    { "category_in_source": "obligatoire", "obligatoire": 18, "option": 6, "choix": 0, "mixed": 0, "other": 0, "absent": 30 },
+    { "category_in_source": "option", "obligatoire": 3, "option": 9, "choix": 0, "mixed": 3, "other": 0, "absent": 21 }
+  ]
+}
+```
+
+*Valeurs illustratives.*
+
+Une case se lit : « N crédits sont *ligne* dans A et *colonne* dans B ». Par exemple, la première
+ligne indique que 18 crédits obligatoires de A sont aussi obligatoires dans B, et que 30 crédits
+obligatoires de A n'existent pas dans B. `mixed` regroupe les cours de types différents selon le
+bloc (obligatoires dans un bloc, à option dans un autre).
+
+## Pièges
+
+- **Sans `path_a` ni `path_b`**, la comparaison porte sur les programmes entiers, tous parcours
+  confondus. Pour un changement d'orientation précis, indiquez les parcours.
+- **Les crédits sont ceux des cours listés**, pas les totaux officiels des programmes.
+- **Un cours de A équivalent à un cours de B** est reconnu comme commun, et signalé par `via_equivalent`.

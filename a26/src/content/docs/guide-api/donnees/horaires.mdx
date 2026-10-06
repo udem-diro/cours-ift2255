@@ -1,0 +1,133 @@
+---
+title: Horaires
+description: Sections, rencontres, examens et choix de sous-groupes d'un cours pour une session.
+sidebar:
+  order: 3
+---
+
+Les horaires sont publiés **session par session**. `GET /schedules` les renvoie regroupés par
+session, puis par cours, puis par section. La même forme est utilisée dans le champ `schedules`
+d'un cours (avec `include_schedule=true`).
+
+## Vue d'ensemble
+
+```
+semesters[]                 une session (A26)
+└── courses[]               un cours à cette session (A26IFT2255)
+    └── sections[]          une section (A, B…)
+        ├── meetings[]      rencontres hebdomadaires (un créneau par élément)
+        │   └── periods[]   périodes de validité, mode et salle de ce créneau
+        ├── exams[]         examens (intra, final, pratiques)
+        ├── unscheduled[]   activités sans horaire (stages, « à définir »)
+        └── choices[]       sous-groupes au choix (TP, ateliers…)
+            └── options[]   une option : ses propres meetings, exams, unscheduled
+```
+
+## Exemple : IFT2255 à l'automne 2026
+
+```json
+{
+  "id": "A26IFT2255",
+  "course_id": "IFT2255",
+  "name": "Génie logiciel",
+  "semester": "A26",
+  "updated_at": "2026-05-27",
+  "sections": [
+    {
+      "id": "A26IFT2255A",
+      "name": "A",
+      "teachers": [],
+      "capacity": 90,
+      "enrolled": 48,
+      "meetings": [
+        { "kind": "TH", "day": "Ma", "weekday": 2, "start_time": "13:30", "end_time": "15:29",
+          "periods": [
+            { "start_date": "2026-09-01", "end_date": "2026-10-16", "mode": "P",
+              "location": { "campus": "Montréal", "place": "Montréal", "building": "Roger-Gaudry (B)", "room": "Y-117" } },
+            { "start_date": "2026-10-26", "end_date": "2026-12-09", "mode": "P",
+              "location": { "campus": "Montréal", "place": "Montréal", "building": "Roger-Gaudry (B)", "room": "Y-117" } }
+          ],
+          "subgroup": null },
+        { "kind": "TP", "day": "Ve", "weekday": 5, "start_time": "09:30", "end_time": "11:29",
+          "periods": [ "…" ], "subgroup": "A101" }
+      ],
+      "exams": [
+        { "kind": "intra", "practical": false, "date": "2026-10-16", "start_time": "09:30", "end_time": "11:29",
+          "mode": "P", "locations": [ { "building": "Roger-Gaudry (B)", "room": "Y-117", "…": "…" } ], "subgroup": null }
+      ],
+      "unscheduled": [],
+      "synthetic": false,
+      "choices": []
+    }
+  ]
+}
+```
+
+## Les rencontres (`meetings`)
+
+Chaque élément est un **créneau hebdomadaire** : un type d'activité (`kind`), un jour et des heures.
+
+- `day` est le code publié par l'université (`Lu`, `Ma`, `Me`, `Je`, `Ve`, `Sa`, `De` pour dimanche) ;
+  `weekday` donne le même jour en nombre (1 = lundi … 7 = dimanche), plus simple à trier.
+- `periods` liste les **plages de dates** où ce créneau a lieu, avec leur mode et leur salle. Un même
+  créneau a souvent deux périodes, de part et d'autre de la semaine de lecture. Une période d'un seul
+  jour signale en général un changement ponctuel de salle.
+- `kind` et `mode` sont renvoyés tels que publiés (`TH` théorie, `TP` travaux pratiques, `LAB`
+  laboratoire… ; `P` présentiel, `HY` hybride, `AD` à distance…).
+
+## Les examens (`exams`)
+
+Un examen a une date, des heures et **toutes ses salles** (`locations`) : un grand groupe est
+souvent réparti dans plusieurs locaux. `kind` vaut `intra` ou `final` ; `practical` signale un
+examen pratique.
+
+## Sous-groupes : fusionnés ou au choix
+
+Une section est souvent accompagnée de **sous-groupes** (A101, A102…), par exemple pour des
+travaux pratiques. L'API les présente de deux façons :
+
+- **Complémentaires** : quand chaque sous-groupe correspond à un type d'activité différent (un TP
+  et un laboratoire), l'étudiant les suit tous. Leurs rencontres sont **fusionnées** dans les
+  `meetings` de la section, avec leur origine dans `subgroup` (`"A101"`).
+- **Au choix** : quand plusieurs sous-groupes offrent la même activité (A1 à A9, tous des
+  ateliers), l'étudiant en choisit **un**. Ils sont présentés dans `choices` :
+
+```json
+"choices": [
+  { "kinds": ["APP"],
+    "options": [
+      { "id": "A26MMD1108A1", "name": "A1", "meetings": [ "…" ], "exams": [], "unscheduled": [], "…": "…" },
+      { "id": "A26MMD1108A2", "name": "A2", "meetings": [ "…" ], "exams": [], "unscheduled": [], "…": "…" }
+    ] }
+]
+```
+
+**Règle de lecture** : un étudiant suit tous les `meetings` de sa section, plus **une option par
+élément de `choices`**.
+
+Quand les sous-groupes d'un cours n'ont pas de section principale dans les données, ils sont
+rangés dans une section **synthétique** nommée `UNK-<lettres>` (`synthetic: true`, sans capacité).
+
+## Activités sans horaire (`unscheduled`)
+
+Stages, activités « à définir », cours sans jour ni heure : elles ne peuvent pas être placées dans
+un calendrier, mais elles font partie du cours. Pensez à les afficher.
+
+## Identifiants de section
+
+Chaque section et chaque option a un `id` (`A26IFT2255A`, `A26MMD1108A1`). Ce sont ces identifiants
+qu'on envoie pour [vérifier un choix de cours](/guide-api/guides/verifier-un-choix/) ou
+[exporter un horaire](/guide-api/guides/exporter-ics/).
+
+## Obtenir des horaires
+
+`GET /schedules?courses=IFT2255,IFT1015&semester=A26`
+
+| Paramètre | Rôle |
+|---|---|
+| `courses` | Sigles des cours **(obligatoire)** |
+| `semester` | Une session précise |
+| `min_semester` | À partir de cette session ; par défaut, à partir de la session en cours |
+
+Sans `semester`, la réponse contient toutes les sessions disponibles à partir de la session en
+cours, dans l'ordre chronologique.

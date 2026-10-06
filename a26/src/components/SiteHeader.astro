@@ -1,0 +1,105 @@
+---
+// Barre de navigation commune. Le logo (64 px) chevauche la barre et le haut de la page.
+const liens = [
+  { href: "/", label: "Accueil" },
+  { href: "/projet/phase-1/", label: "Projet" },
+  // { href: "/carte/", label: "Carte" },
+  { href: "/guide-api/", label: "Guide de l'API" },
+];
+const chemin = Astro.url.pathname;
+const actif = (lien: { href: string; prefixe?: string }) =>
+  lien.href === "/" ? chemin === "/" : chemin.startsWith(lien.prefixe ?? lien.href);
+---
+
+<header class="site-entete">
+  <div class="site-barre">
+    <a class="site-logo" href="/" aria-label="IFT2255, accueil">
+      <img src="/logo-ift2255.png" width="64" height="64" alt="" />
+    </a>
+    <nav class="site-nav" aria-label="Navigation principale">
+      <ul>
+        {liens.map((lien) => (
+          <li>
+            <a href={lien.href} aria-current={actif(lien) ? "page" : undefined}>{lien.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-entete {
+    position: relative;
+    z-index: 10;
+    background: #fff;
+    border-bottom: 1px solid var(--ligne);
+  }
+  .site-barre {
+    position: relative;
+    max-width: 1120px;
+    height: 3.25rem;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  /* Le logo est centré sur la bordure basse de la barre : moitié dans la barre, moitié dans la page */
+  .site-logo {
+    position: absolute;
+    left: 1.25rem;
+    top: calc(3.25rem - 32px);
+    line-height: 0;
+    border-radius: 6px;
+    box-shadow: 0 0 0 3px #fff, 0 2px 8px rgb(27 36 55 / 0.18);
+  }
+  .site-logo img {
+    display: block;
+    width: 64px;
+    height: auto;
+    border-radius: 6px;
+  }
+  .site-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 1.4rem;
+  }
+  .site-nav a {
+    display: inline-block;
+    padding: 0.35rem 0;
+    font: 500 0.92rem/1 var(--police-texte);
+    color: var(--texte);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+  }
+  .site-nav a:hover {
+    color: #2c5eb4;
+  }
+  .site-nav a[aria-current="page"] {
+    color: #2c5eb4;
+    font-weight: 600;
+    border-bottom-color: #3573dd;
+  }
+  @media (max-width: 720px) {
+    /* Une seule ligne qui défile horizontalement : la hauteur de la barre reste fixe pour le logo */
+    .site-barre {
+      padding-left: calc(1.25rem + 64px + 0.8rem);
+      padding-right: 0;
+    }
+    .site-nav {
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .site-nav ul {
+      gap: 1rem;
+      padding-right: 1.25rem;
+      white-space: nowrap;
+    }
+    .site-nav a {
+      font-size: 0.86rem;
+    }
+  }
+</style>

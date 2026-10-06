@@ -1,0 +1,9 @@
+---
+import ReferenceLayout from "../../layouts/ReferenceLayout.astro";
+import CardExplorer from "../../components/CardExplorer";
+import data from "../../data/architecture.json";
+---
+
+<ReferenceLayout title={data.theme.label} color={data.theme.color} intro={data.theme.intro}>
+  <CardExplorer client:load theme={data.theme} notions={data.notions} />
+</ReferenceLayout>

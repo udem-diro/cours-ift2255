@@ -1,0 +1,177 @@
+---
+title: Explorer un programme
+description: Trouver un programme, lire sa structure et ses parcours.
+sidebar:
+  order: 2
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+{/* > **Question** : comment est organisé le baccalauréat en informatique, et quels cours sont
+> obligatoires dans chaque orientation ? */}
+
+:::note[Code des exemples]
+Les exemples réutilisent la constante `BASE_URL` et, en Java, un `HttpClient client` et un
+`ObjectMapper mapper`, présentés dans [Premier appel](/guide-api/demarrer/premier-appel/).
+:::
+
+## 1. Trouver le programme
+
+`GET /programs` accepte plusieurs critères de recherche :
+
+| Paramètre | Recherche |
+|---|---|
+| `name` | Dans le nom, sans tenir compte des majuscules ni des accents |
+| `id_like` | Dans l'identifiant |
+| `course_ids` | Programmes qui contiennent ces cours |
+| `course_match` | `all` (par défaut) : tous les cours ; `any` : au moins un |
+| `course_type` | Ne considérer que les blocs de ce type : `obligatoire`, `option`, `choix` |
+| `programs_list` | Des programmes précis |
+| `logicop` | `and` (par défaut) ou `or` entre les critères |
+
+Pour proposer une liste de programmes classée par faculté et département, `GET /faculties` est
+souvent plus pratique (voir [Programmes](/guide-api/donnees/programmes/#facultés)).
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+const params = new URLSearchParams({ name: "baccalauréat informatique", response_level: "min" });
+const programs = await (await fetch(`${BASE_URL}/programs?${params}`)).json();
+programs.forEach(p => console.log(p.id, p.name));
+```
+</TabItem>
+<TabItem label="Python">
+```python
+programs = requests.get(f"{BASE_URL}/programs",
+                        params={"name": "baccalauréat informatique", "response_level": "min"}).json()
+for program in programs:
+    print(program["id"], program["name"])
+```
+</TabItem>
+<TabItem label="Java">
+```java
+String query = "response_level=min&name=" + URLEncoder.encode("baccalauréat informatique", StandardCharsets.UTF_8);
+JsonNode programs = mapper.readTree(client.send(
+        HttpRequest.newBuilder(URI.create(BASE_URL + "/programs?" + query)).build(),
+        HttpResponse.BodyHandlers.ofString()).body());
+programs.forEach(p -> System.out.println(p.get("id").asText() + " " + p.get("name").asText()));
+```
+</TabItem>
+</Tabs>
+
+## 2. Lire la structure
+
+`GET /programs/{id}` renvoie le programme, ses segments et ses blocs. Avec
+`include_courses_detail=true`, la liste `courses` contient les cours eux-mêmes plutôt que leurs
+sigles, ce qui évite une requête par cours.
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+const program = await (await fetch(`${BASE_URL}/programs/117510?include_courses_detail=true`)).json();
+const titles = Object.fromEntries(program.courses.map(c => [c.id, c.name]));
+
+for (const segment of program.segments) {
+  for (const bloc of segment.blocs) {
+    console.log(`${bloc.name} (${bloc.type}, ${bloc.min}-${bloc.max} crédits)`);
+    bloc.courses.forEach(id => console.log(`  ${id} ${titles[id] ?? ""}`));
+  }
+}
+```
+</TabItem>
+<TabItem label="Python">
+```python
+program = requests.get(f"{BASE_URL}/programs/117510", params={"include_courses_detail": "true"}).json()
+titles = {c["id"]: c["name"] for c in program["courses"]}
+
+for segment in program["segments"]:
+    for bloc in segment["blocs"]:
+        print(f"{bloc['name']} ({bloc['type']}, {bloc['min']}-{bloc['max']} crédits)")
+        for course_id in bloc["courses"]:
+            print(f"  {course_id} {titles.get(course_id, '')}")
+```
+</TabItem>
+<TabItem label="Java">
+```java
+JsonNode program = mapper.readTree(client.send(
+        HttpRequest.newBuilder(URI.create(BASE_URL + "/programs/117510?include_courses_detail=true")).build(),
+        HttpResponse.BodyHandlers.ofString()).body());
+Map<String, String> titles = new HashMap<>();
+program.get("courses").forEach(c -> titles.put(c.get("id").asText(), c.get("name").asText()));
+
+for (JsonNode segment : program.get("segments")) {
+    for (JsonNode bloc : segment.get("blocs")) {
+        System.out.printf("%s (%s, %s-%s crédits)%n", bloc.get("name").asText(), bloc.get("type").asText(),
+                bloc.get("min").asText(), bloc.get("max").asText());
+        bloc.get("courses").forEach(id -> System.out.println("  " + id.asText() + " " + titles.getOrDefault(id.asText(), "")));
+    }
+}
+```
+</TabItem>
+</Tabs>
+
+## 3. Voir les parcours
+
+Le champ `paths` du programme liste ses parcours (orientations, cheminements…) et les segments que
+chacun regroupe. En le combinant avec `segments`, on obtient les cours obligatoires de chaque parcours.
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+const program = await (await fetch(`${BASE_URL}/programs/117510`)).json();
+const segmentsById = Object.fromEntries(program.segments.map(s => [s.id, s]));
+
+for (const path of program.paths) {
+  const mandatory = path.segments
+    .flatMap(id => segmentsById[id].blocs)
+    .filter(bloc => bloc.type.toLowerCase() === "obligatoire")
+    .flatMap(bloc => bloc.courses);
+  console.log(path.title ?? "(segments communs)", "-", mandatory.join(", "));
+}
+```
+</TabItem>
+<TabItem label="Python">
+```python
+program = requests.get(f"{BASE_URL}/programs/117510").json()
+segments_by_id = {s["id"]: s for s in program["segments"]}
+
+for path in program["paths"]:
+    mandatory = [course
+                 for segment_id in path["segments"]
+                 for bloc in segments_by_id[segment_id]["blocs"] if bloc["type"].lower() == "obligatoire"
+                 for course in bloc["courses"]]
+    print(path["title"] or "(segments communs)", "-", ", ".join(mandatory))
+```
+</TabItem>
+<TabItem label="Java">
+```java
+JsonNode program = mapper.readTree(client.send(
+        HttpRequest.newBuilder(URI.create(BASE_URL + "/programs/117510")).build(),
+        HttpResponse.BodyHandlers.ofString()).body());
+Map<String, JsonNode> segmentsById = new HashMap<>();
+program.get("segments").forEach(s -> segmentsById.put(s.get("id").asText(), s));
+
+for (JsonNode path : program.get("paths")) {
+    List<String> mandatory = new ArrayList<>();
+    path.get("segments").forEach(id -> segmentsById.get(id.asText()).get("blocs").forEach(bloc -> {
+        if (bloc.get("type").asText().equalsIgnoreCase("obligatoire")) {
+            bloc.get("courses").forEach(c -> mandatory.add(c.asText()));
+        }
+    }));
+    String title = path.get("title").isNull() ? "(segments communs)" : path.get("title").asText();
+    System.out.println(title + " - " + String.join(", ", mandatory));
+}
+```
+</TabItem>
+</Tabs>
+
+Pour savoir en plus ce qu'un étudiant a déjà réussi dans chaque parcours, voir
+[Progression](/guide-api/guides/progression/).
+
+## Pièges
+
+- **Un identifiant de programme mal écrit** donne une erreur 404 sur `/programs/{id}`, et une liste
+  vide sur `/programs?programs_list=…`.
+- **Les types de bloc** sont renvoyés tels que stockés (`Obligatoire`, `obligatoire`…) : comparez-les
+  sans tenir compte des majuscules.
+- **`credits.required` ou `mandatory_credits`** additionnent les cours obligatoires **listés** : ce
+  n'est pas forcément le total officiel du programme, que l'annuaire décrit en texte (`structure`).

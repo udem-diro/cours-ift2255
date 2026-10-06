@@ -1,0 +1,92 @@
+---
+title: Programmes
+description: Parcours, segments et blocs d'un programme.
+sidebar:
+  order: 2
+---
+
+Un programme (par exemple un baccalauréat) est identifié par un nombre à 6 chiffres (`id`). Sa
+structure suit celle de l'annuaire de l'université, sur trois niveaux.
+
+## Segments, blocs et cours
+
+- Un **segment** regroupe des blocs (par exemple « Tronc commun »).
+- Un **bloc** regroupe des cours, avec un **type** et des bornes de crédits :
+  - `Obligatoire` : en général, tous les cours du bloc sont exigés ;
+  - `Option` : des cours au choix dans une liste, entre `min` et `max` crédits ;
+  - `Choix` : des cours au choix, souvent dans tout le catalogue (la liste peut être vide).
+
+```json
+{
+  "id": "117510",
+  "name": "Baccalauréat en informatique",
+  "segments": [
+    {
+      "id": "01",
+      "name": "Segment 01",
+      "blocs": [
+        { "id": "01A", "name": "Bloc 01A", "type": "Obligatoire", "min": 33, "max": 33,
+          "courses": ["IFT1015", "IFT1025", "IFT2255"] },
+        { "id": "01B", "name": "Bloc 01B", "type": "Option", "min": 9, "max": 15,
+          "courses": ["IFT3225", "IFT3395"] }
+      ]
+    }
+  ],
+  "courses": ["IFT1015", "IFT1025", "IFT2255", "IFT3225", "IFT3395"]
+}
+```
+
+*Les valeurs ci-dessus sont abrégées pour l'exemple.*
+
+Le champ `courses` du programme liste tous les cours mentionnés par ses blocs. Avec
+`include_courses_detail=true`, il contient les cours eux-mêmes (titre, crédits…) au lieu de leurs
+sigles, dans l'ordre du programme.
+
+:::caution
+Le type d'un bloc est renvoyé tel que stocké : `Obligatoire`, `obligatoire`, `Option`… Comparez-le
+sans tenir compte des majuscules.
+:::
+
+## Parcours
+
+Beaucoup de programmes proposent des **parcours** : des orientations, des cheminements, des options
+ou des modalités. Chaque parcours regroupe certains segments. Dans la plupart des programmes, chaque
+parcours inclut aussi les segments communs (le tronc commun).
+
+`GET /programs/{id}` liste les parcours dans `paths`, avec les identifiants de leurs segments :
+
+```json
+"paths": [
+  { "title": "Science des données", "kind": "orientation", "segments": ["01", "02"] },
+  { "title": "Génie logiciel",      "kind": "orientation", "segments": ["01", "03"] }
+]
+```
+
+Les routes de [progression](/guide-api/guides/progression/) et de
+[comparaison](/guide-api/guides/comparer-des-programmes/) reprennent la même organisation par parcours.
+
+| `kind` | Sens |
+|---|---|
+| `orientation`, `cheminement`, `option`, `modalite` | Un parcours déclaré par le programme |
+| `common` | Les segments rattachés à aucun parcours (`title` vaut `null` ; souvent absent, car chaque parcours inclut le tronc commun) |
+
+Plusieurs routes acceptent un paramètre `path` (ou `path_a`, `path_b`) pour se limiter à un
+parcours. Le titre est comparé sans tenir compte des majuscules ni des accents ; un titre inconnu
+donne une erreur 400 qui liste les titres valides.
+
+## Facultés
+
+`GET /faculties` renvoie les facultés, leurs départements et leurs programmes (identifiant et nom).
+C'est un bon point de départ pour proposer une liste de programmes à l'utilisateur.
+
+```json
+[
+  { "id": "01", "name": "Faculté des arts et des sciences",
+    "departments": [
+      { "id": "0110", "name": "Informatique et recherche opérationnelle",
+        "programs": [ { "id": "117510", "name": "Baccalauréat en informatique" } ] }
+    ] }
+]
+```
+
+*Valeurs abrégées pour l'exemple.*

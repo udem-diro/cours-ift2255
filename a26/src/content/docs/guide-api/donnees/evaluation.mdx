@@ -1,0 +1,88 @@
+---
+title: Évaluation des exigences
+description: Ce que signifient yes, no et unknown, et comment l'API évalue les exigences.
+sidebar:
+  order: 4
+---
+
+Plusieurs routes **évaluent** les exigences d'un cours à partir de la situation d'un étudiant :
+ses cours réussis, et éventuellement son programme, sa moyenne et ses crédits.
+
+## Trois résultats possibles
+
+| Résultat | Sens |
+|---|---|
+| `yes` | Les exigences sont satisfaites |
+| `no` | Les exigences ne sont pas satisfaites (avec la raison) |
+| `unknown` | Le résultat dépend d'une condition que l'API ne peut pas vérifier |
+
+On parle d'**évaluation à trois valeurs** : en plus de vrai et faux, une troisième valeur exprime
+l'incertitude.
+
+:::caution[`unknown` n'est pas un oui]
+`unknown` veut dire « à vérifier par une personne ». Une application qui traiterait `unknown` comme
+`yes` laisserait croire qu'un étudiant peut s'inscrire alors que rien ne le garantit. Affichez
+plutôt les points à vérifier (`to_verify`).
+:::
+
+## Ce qu'on envoie
+
+| Champ | Utilisé pour |
+|---|---|
+| `completed_courses` | Les cours réussis **(obligatoire en pratique)** |
+| `program_id` | Les conditions de programme (« réservé aux étudiants du programme… ») |
+| `gpa` | Les conditions de moyenne (entre 0 et 4,3) |
+| `total_credits` | Les conditions de crédits sans filtre de sigle, y compris des crédits obtenus ailleurs |
+
+Les champs facultatifs non envoyés rendent les conditions correspondantes `unknown` plutôt que
+`no`. Par exemple, sans `gpa`, une exigence de moyenne reste à vérifier.
+
+## Les règles, en bref
+
+- **Un cours exigé** est satisfait s'il est réussi, ou si un cours **équivalent** l'est. Les
+  équivalences par combinaison sont respectées : si CRI1006 est équivalent à « SOL1018 **et**
+  SOL1020 », avoir réussi SOL1018 seul ne suffit pas.
+- **« et »** (`all`) : `no` dès qu'une condition vaut `no` ; `yes` si toutes valent `yes` ;
+  sinon `unknown`.
+- **« ou »** (`any`) : `yes` dès qu'une condition vaut `yes` ; `no` si toutes valent `no` ;
+  sinon `unknown`. Ainsi, « IFT1015 ou compétence équivalente » donne `yes` si IFT1015 est réussi,
+  et `unknown` sinon, jamais `no`.
+- **Crédits** : la somme des crédits des cours réussis, filtrée selon la portée. Quand la portée
+  n'est pas calculable (crédits « dans le programme »), le résultat est `unknown`, sauf si même le
+  total de tous les crédits est déjà insuffisant (`no`).
+- **Programme**, **moyenne** : évalués si l'information est envoyée, sinon `unknown`.
+- **Condition d'application** (`when`) : une exigence réservée à un autre programme que celui de
+  l'étudiant ne s'applique pas.
+- **Exclusions** : avoir réussi un cours exclu donne `no`, quel que soit le reste.
+- **Conditions `manual`** : toujours `unknown`.
+
+## Les raisons renvoyées
+
+Selon la route, le résultat est accompagné de :
+
+| Champ | Contenu |
+|---|---|
+| `missing_courses` | Cours exigés qui ne sont pas réussis |
+| `unmet` | Autres conditions non remplies (crédits, programme, moyenne, cours exclus) |
+| `to_verify` | Conditions à vérifier (pour `unknown`) |
+| `via_equivalent` | Cours exigés satisfaits par équivalence, et par quels cours |
+
+```json
+{
+  "status": "unknown",
+  "missing_courses": [],
+  "unmet": [],
+  "to_verify": ["compétence équivalente"],
+  "via_equivalent": [ { "prerequisite": "CRI1006", "completed": ["SOL1018", "SOL1020"] } ]
+}
+```
+
+## Où l'évaluation est utilisée
+
+| Route | Évalue |
+|---|---|
+| `POST /courses/{id}/eligibility` | Un cours |
+| `POST /programs/{id}/eligible-courses` | Tous les cours d'un programme |
+| `POST /programs/{id}/progress` | Les cours accessibles de chaque parcours |
+| `POST /courseplan/check` | Les cours prévus pour une session |
+| `POST /courseplan/generate` | Les cours candidats d'un horaire |

@@ -1,0 +1,119 @@
+---
+title: Chercher des cours
+description: Rechercher des cours par texte, session, période, crédits ou cycle.
+sidebar:
+  order: 1
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+{/* > **Question** : quels cours d'informatique de 3 crédits parlent de données et sont offerts
+> l'hiver, de jour ? */}
+
+:::note[Code des exemples]
+Les exemples réutilisent la constante `BASE_URL` et, en Java, un `HttpClient client` et un
+`ObjectMapper mapper`, présentés dans [Premier appel](/guide-api/demarrer/premier-appel/).
+:::
+
+
+## Les critères de recherche de `GET /courses`
+
+| Paramètre | Recherche |
+|---|---|
+| `name` | Dans le titre, sans tenir compte des majuscules ni des accents |
+| `description` | Dans la description, de la même façon |
+| `sigle` | Dans le sigle (`IFT`, `IFT2`…) |
+| `exact_credits`, `min_credits`, `max_credits` | Nombre de crédits |
+| `terms` | Offert habituellement à l'une de ces sessions : `autumn`, `winter`, `summer` (paramètre répété) |
+| `periods` | Offert habituellement à l'une de ces périodes : `daytime`, `evening` (paramètre répété) |
+| `cycle` | `1` (cours de 1000 à 4999) ; `2` et `3` renvoient les mêmes cours (6000 à 6999) |
+| `logicop` | `and` (par défaut) : tous les critères ; `or` : au moins un |
+
+Une recherche textuelle de plusieurs mots trouve les textes qui contiennent ces mots **dans cet
+ordre** : `name=génie log` trouve « Génie logiciel ».
+
+## La requête
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+const params = new URLSearchParams({
+  sigle: "IFT", description: "données", exact_credits: "3", response_level: "reg", limit: "50",
+});
+params.append("terms", "winter");
+params.append("periods", "daytime");
+
+const response = await fetch(`${BASE_URL}/courses?${params}`);
+const courses = await response.json();
+
+console.log(`${response.headers.get("X-Total-Count")} cours trouvés`);
+for (const course of courses) {
+  console.log(course.id, course.name);
+}
+```
+</TabItem>
+<TabItem label="Python">
+```python
+response = requests.get(f"{BASE_URL}/courses", params={
+    "sigle": "IFT", "description": "données", "exact_credits": 3,
+    "terms": ["winter"], "periods": ["daytime"], "response_level": "reg", "limit": 50,
+})
+courses = response.json()
+
+print(f"{response.headers['X-Total-Count']} cours trouvés")
+for course in courses:
+    print(course["id"], course["name"])
+```
+</TabItem>
+<TabItem label="Java">
+```java
+String query = "sigle=IFT&exact_credits=3&terms=winter&periods=daytime&response_level=reg&limit=50"
+        + "&description=" + URLEncoder.encode("données", StandardCharsets.UTF_8);
+HttpResponse<String> response = client.send(
+        HttpRequest.newBuilder(URI.create(BASE_URL + "/courses?" + query)).build(),
+        HttpResponse.BodyHandlers.ofString());
+
+System.out.println(response.headers().firstValue("X-Total-Count").orElse("0") + " cours trouvés");
+for (JsonNode course : new ObjectMapper().readTree(response.body())) {
+    System.out.println(course.get("id").asText() + " " + course.get("name").asText());
+}
+```
+</TabItem>
+</Tabs>
+
+## La réponse
+
+```json
+[
+  {
+    "id": "IFT3700",
+    "name": "Science des données",
+    "credits": 3.0,
+    "description": "…",
+    "available_terms": { "autumn": false, "winter": true, "summer": false },
+    "available_periods": { "daytime": true, "evening": false },
+    "schedules": []
+  }
+]
+```
+
+*Exemple illustratif ; les résultats réels dépendent du catalogue.*
+
+## Variantes utiles
+
+- **Des cours précis** : `courses_sigle=IFT2255,IFT1015` renvoie exactement ces cours, sans pagination.
+- **Un seul cours** : `GET /courses/IFT2255` renvoie le cours au niveau `full`, avec ses exigences.
+- **Avec les horaires** : `include_schedule=true&schedule_semester=A26` ajoute les horaires de la
+  session (voir [Horaires](/guide-api/donnees/horaires/)).
+- **N'importe quel critère** : `logicop=or` élargit la recherche, par exemple pour chercher un mot
+  dans le titre **ou** dans la description.
+
+## Pièges
+
+- **Une réponse vide** vient souvent d'une faute dans un sigle, ou de critères trop nombreux
+  combinés par `and`.
+- **`terms=autumn,winter` ne fonctionne pas** : il faut répéter le paramètre
+  (`terms=autumn&terms=winter`).
+- **`available_terms` décrit l'offre habituelle**, pas celle d'une session précise : pour le
+  confirmer, consultez les horaires.
+- **Les résultats sont paginés** (100 par défaut) : servez-vous de `X-Total-Count` pour savoir s'il
+  en reste (voir [Pagination](/guide-api/demarrer/conventions/#pagination)).

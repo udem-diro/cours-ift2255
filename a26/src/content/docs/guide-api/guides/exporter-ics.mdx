@@ -1,0 +1,79 @@
+---
+title: Exporter un horaire
+description: Produire un fichier iCalendar (.ics) à importer dans un agenda.
+sidebar:
+  order: 7
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+{/* > **Question** : j'ai choisi mes sections ; comment les mettre dans mon agenda (Google, Outlook,
+> Apple) ? */}
+
+:::note[Code des exemples]
+Les exemples réutilisent la constante `BASE_URL` et, en Java, un `HttpClient client` et un
+`ObjectMapper mapper`, présentés dans [Premier appel](/guide-api/demarrer/premier-appel/).
+:::
+
+`GET /schedules/ics?schedule_ids=…` renvoie un fichier **iCalendar** (`.ics`) &mdash; le format d'échange
+des agendas. On lui donne les identifiants des sections et des options choisies, par exemple ceux
+de `best.sections` renvoyés par [la génération d'horaire](/guide-api/guides/generer-un-horaire/).
+
+## Ce que contient le fichier
+
+- **Chaque créneau hebdomadaire** devient un événement récurrent, de son premier jour de cours à
+  sa dernière séance, à l'heure de Montréal (changement d'heure compris).
+- **Les changements ponctuels de salle** remplacent l'occurrence du jour concerné.
+- **Chaque examen** devient un événement simple, avec toutes ses salles.
+- **Une section** inclut ses sous-groupes complémentaires (TP, laboratoire). Les **options** d'un
+  choix ne sont incluses que si leur identifiant est demandé.
+- **Les activités sans horaire** ne sont pas exportées.
+
+## La requête
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+// Dans une page web : un simple lien suffit, le navigateur télécharge le fichier
+const ids = ["A26IFT2255A", "A26MMD1108A", "A26MMD1108A1"];
+const link = document.createElement("a");
+link.href = `${BASE_URL}/schedules/ics?schedule_ids=${ids.join(",")}`;
+link.textContent = "Ajouter à mon agenda";
+document.body.append(link);
+
+// Dans Node : enregistrer le fichier
+import { writeFile } from "node:fs/promises";
+const response = await fetch(`${BASE_URL}/schedules/ics?schedule_ids=${ids.join(",")}`);
+await writeFile("horaire.ics", await response.text());
+```
+</TabItem>
+<TabItem label="Python">
+```python
+ids = ["A26IFT2255A", "A26MMD1108A", "A26MMD1108A1"]
+response = requests.get(f"{BASE_URL}/schedules/ics", params={"schedule_ids": ",".join(ids)})
+response.raise_for_status()
+
+with open("horaire.ics", "w", encoding="utf-8") as file:
+    file.write(response.text)
+```
+</TabItem>
+<TabItem label="Java">
+```java
+List<String> ids = List.of("A26IFT2255A", "A26MMD1108A", "A26MMD1108A1");
+HttpResponse<Path> response = client.send(
+        HttpRequest.newBuilder(URI.create(BASE_URL + "/schedules/ics?schedule_ids=" + String.join(",", ids))).build(),
+        HttpResponse.BodyHandlers.ofFile(Path.of("horaire.ics")));   // java.nio.file.Path
+System.out.println(response.statusCode() == 200 ? "horaire.ics enregistré" : "Erreur " + response.statusCode());
+```
+</TabItem>
+</Tabs>
+
+L'utilisateur importe ensuite `horaire.ics` dans son agenda.
+
+## Pièges
+
+- **Un identifiant inconnu** donne une erreur 404 qui le nomme : vérifiez la session et le nom de la
+  section (`A26IFT2255A`, pas `IFT2255A`).
+- **Une option sans sa section** n'exporte que l'option : demandez aussi la section.
+- **Les heures de fin** sont exportées telles que publiées (souvent `15:29`).
+- **Le fichier n'est pas mis à jour automatiquement** : si l'horaire change, il faut l'exporter de
+  nouveau.

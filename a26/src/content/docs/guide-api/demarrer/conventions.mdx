@@ -1,0 +1,297 @@
+---
+title: Conventions
+description: Identifiants, paramètres, pagination, requêtes de calcul et erreurs, communs à toute l'API.
+sidebar:
+  order: 3
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Cette page rassemble les règles communes à toutes les routes. Les guides pratiques les supposent
+connues.
+
+## Identifiants
+
+| Quoi | Forme | Exemples |
+|---|---|---|
+| Cours (sigle) | 3 lettres et 4 ou 5 chiffres, parfois suivis d'une lettre | `IFT2255`, `CRI1006G` |
+| Programme | 6 chiffres | `117510` |
+| Session | une lettre de saison et l'année sur deux chiffres : `A` automne, `H` hiver, `E` été | `A26` (automne 2026) |
+| Section, option | session, sigle, puis nom de la section | `A26IFT2255A`, `A26MMD1108A1` |
+
+L'API **normalise** les identifiants, c'est-à-dire qu'elle les ramène à leur forme standard :
+`ift 2255` devient `IFT2255`, et un identifiant de programme écrit avec des tirets (`1-175-1-0`)
+devient `117510`.
+
+En revanche, elle **ne valide pas** les sigles ni les identifiants de programme : un identifiant
+mal écrit ne provoque pas d'erreur, il donne simplement une liste vide, ou une erreur 404 si l'on
+demande une seule ressource. Si une réponse est vide alors que vous attendiez des résultats,
+vérifiez d'abord l'orthographe des identifiants.
+
+Les sessions, elles, sont validées : `A2X` donne une erreur 400.
+
+## Listes de valeurs
+
+Quand un paramètre accepte plusieurs identifiants, deux formes sont acceptées :
+
+```
+?courses_sigle=IFT2255,IFT1015
+?courses_sigle=["IFT2255","IFT1015"]
+```
+
+Les filtres de **sessions** et de **périodes** de `/courses` sont différents : on **répète** le
+paramètre.
+
+```
+?terms=autumn&terms=winter
+?periods=daytime&periods=evening
+```
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+const params = new URLSearchParams({ name: "génie" });
+params.append("terms", "autumn");
+params.append("terms", "winter");   // append ajoute une valeur sans remplacer la précédente
+
+const response = await fetch(`${BASE_URL}/courses?${params}`);
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# Une liste Python devient un paramètre répété : terms=autumn&terms=winter
+response = requests.get(f"{BASE_URL}/courses",
+                        params={"name": "génie", "terms": ["autumn", "winter"]})
+```
+</TabItem>
+<TabItem label="Java">
+```java
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
+String query = "name=" + URLEncoder.encode("génie", StandardCharsets.UTF_8)
+        + "&terms=autumn&terms=winter";
+HttpRequest request = HttpRequest.newBuilder(URI.create(BASE_URL + "/courses?" + query)).build();
+```
+Pensez à encoder (`URLEncoder.encode`) toute valeur qui contient des accents ou des espaces.
+</TabItem>
+</Tabs>
+
+## Valeurs imposées
+
+Certains paramètres n'acceptent qu'un petit ensemble de valeurs, qu'on appelle une **énumération**.
+Toute autre valeur donne une erreur 422.
+
+| Paramètre | Valeurs |
+|---|---|
+| `response_level` | `min`, `reg` (par défaut), `full` |
+| `terms` | `autumn`, `winter`, `summer` |
+| `periods` | `daytime`, `evening` |
+| `logicop` | `and` (par défaut), `or` |
+
+`logicop` indique comment combiner plusieurs critères de recherche dans `/courses` et `/programs` :
+avec `and`, un résultat doit satisfaire **tous** les critères ; avec `or`, **au moins un**.
+
+## Pagination
+
+La **pagination** consiste à obtenir une longue liste de résultats par morceaux, page par page.
+`GET /courses` accepte deux paramètres :
+
+- `limit` : le nombre maximal de cours renvoyés (100 par défaut, au plus 500) ;
+- `skip` : le nombre de cours à sauter avant de commencer.
+
+L'en-tête `X-Total-Count` donne le nombre total de résultats. Les cours sont triés par sigle, si
+bien que les pages se suivent sans doublon ni oubli.
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+async function allCourses(query, pageSize = 100) {
+  const results = [];
+  let skip = 0, total = Infinity;
+  while (skip < total) {
+    const response = await fetch(`${BASE_URL}/courses?${query}&limit=${pageSize}&skip=${skip}`);
+    total = Number(response.headers.get("X-Total-Count"));
+    results.push(...await response.json());
+    skip += pageSize;
+  }
+  return results;
+}
+
+const ift = await allCourses("sigle=IFT");
+```
+</TabItem>
+<TabItem label="Python">
+```python
+def all_courses(params, page_size=100):
+    results, skip, total = [], 0, None
+    while total is None or skip < total:
+        response = requests.get(f"{BASE_URL}/courses",
+                                params={**params, "limit": page_size, "skip": skip})
+        total = int(response.headers["X-Total-Count"])
+        results.extend(response.json())
+        skip += page_size
+    return results
+
+ift = all_courses({"sigle": "IFT"})
+```
+</TabItem>
+<TabItem label="Java">
+```java
+static List<JsonNode> allCourses(HttpClient client, String query, int pageSize) throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
+    List<JsonNode> results = new ArrayList<>();
+    int skip = 0, total = Integer.MAX_VALUE;
+    while (skip < total) {
+        URI uri = URI.create(BASE_URL + "/courses?" + query + "&limit=" + pageSize + "&skip=" + skip);
+        HttpResponse<String> response = client.send(HttpRequest.newBuilder(uri).build(),
+                HttpResponse.BodyHandlers.ofString());
+        total = Integer.parseInt(response.headers().firstValue("X-Total-Count").orElse("0"));
+        mapper.readTree(response.body()).forEach(results::add);
+        skip += pageSize;
+    }
+    return results;
+}
+```
+</TabItem>
+</Tabs>
+
+:::note
+Quand on demande des cours précis avec `courses_sigle`, tous les cours demandés sont renvoyés,
+sans pagination.
+:::
+
+## Lire et calculer : GET et POST
+
+- Les routes **`GET`** lisent des données : cours, programmes, horaires.
+- Les routes **`POST`** font un **calcul** à partir de ce que vous envoyez : progression, éligibilité,
+  vérification ou génération d'un horaire. Les données sont envoyées dans le **corps de la requête**
+  (le contenu transmis avec elle), en JSON.
+
+Malgré la méthode `POST`, ces routes **ne modifient rien** : l'API ne conserve aucune donnée sur
+les étudiants. Voici par exemple comment demander si un étudiant peut suivre IFT2255 :
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+const response = await fetch(`${BASE_URL}/courses/IFT2255/eligibility`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ completed_courses: ["IFT1015", "IFT1025"], program_id: "117510" }),
+});
+const result = await response.json();
+console.log(result.status);   // « yes », « no » ou « unknown »
+```
+</TabItem>
+<TabItem label="Python">
+```python
+response = requests.post(f"{BASE_URL}/courses/IFT2255/eligibility",
+                         json={"completed_courses": ["IFT1015", "IFT1025"], "program_id": "117510"})
+result = response.json()
+print(result["status"])   # « yes », « no » ou « unknown »
+```
+`json=` transforme le dictionnaire en JSON et ajoute l'en-tête `Content-Type` adéquat.
+</TabItem>
+<TabItem label="Java">
+```java
+ObjectMapper mapper = new ObjectMapper();
+String body = mapper.writeValueAsString(Map.of(
+        "completed_courses", List.of("IFT1015", "IFT1025"),
+        "program_id", "117510"));
+
+HttpRequest request = HttpRequest.newBuilder(URI.create(BASE_URL + "/courses/IFT2255/eligibility"))
+        .header("Content-Type", "application/json")
+        .POST(HttpRequest.BodyPublishers.ofString(body))
+        .build();
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println(mapper.readTree(response.body()).get("status").asText());   // yes, no ou unknown
+```
+</TabItem>
+</Tabs>
+
+Le sens de `yes`, `no` et `unknown` est expliqué dans [Évaluation des exigences](/guide-api/donnees/evaluation/).
+
+## Dates et heures
+
+- Les dates sont au format ISO : `2026-09-01`.
+- Les heures sont au format `HH:MM`, telles que publiées par l'université. Les cours finissent
+  souvent à la minute précédant l'heure (`15:29`), si bien qu'un cours qui finit à 15 h 29 et un
+  autre qui commence à 15 h 30 ne se chevauchent pas.
+
+## Erreurs
+
+Chaque réponse porte un **code d'état HTTP**, un nombre qui indique si la requête a réussi :
+
+| Code | Sens | Exemple |
+|---|---|---|
+| 200 | Réussite | |
+| 400 | Valeur refusée par l'API | session mal formée (`A2X`), parcours inconnu |
+| 404 | Ressource introuvable | `/courses/XYZ9999`, programme inconnu |
+| 422 | Requête mal formée | paramètre obligatoire absent, valeur hors énumération, mauvais type |
+| 500 | Erreur du serveur | à signaler aux responsables de l'API |
+
+En cas d'erreur, le corps de la réponse contient un champ `detail`. Pour les codes 400, 404 et 500,
+c'est un message ; pour le code 422, c'est une liste qui indique chaque problème et son emplacement :
+
+```json
+{ "detail": [ { "loc": ["query", "terms", 0], "msg": "Input should be 'autumn', 'winter' or 'summer'", "type": "enum" } ] }
+```
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+async function getJson(url, options) {
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    const { detail } = await response.json();
+    const message = Array.isArray(detail) ? detail.map(d => d.msg).join("; ") : detail;
+    throw new Error(`Erreur ${response.status} : ${message}`);
+  }
+  return response.json();
+}
+
+try {
+  const course = await getJson(`${BASE_URL}/courses/XYZ9999`);
+} catch (error) {
+  console.error(error.message);   // Erreur 404 : Course not found
+}
+```
+</TabItem>
+<TabItem label="Python">
+```python
+def get_json(url, **kwargs):
+    response = requests.get(url, **kwargs)
+    if not response.ok:
+        detail = response.json().get("detail")
+        message = "; ".join(d["msg"] for d in detail) if isinstance(detail, list) else detail
+        raise RuntimeError(f"Erreur {response.status_code} : {message}")
+    return response.json()
+
+try:
+    course = get_json(f"{BASE_URL}/courses/XYZ9999")
+except RuntimeError as error:
+    print(error)   # Erreur 404 : Course not found
+```
+</TabItem>
+<TabItem label="Java">
+```java
+static JsonNode getJson(HttpClient client, String url) throws Exception {
+    HttpResponse<String> response = client.send(HttpRequest.newBuilder(URI.create(url)).build(),
+            HttpResponse.BodyHandlers.ofString());
+    JsonNode body = new ObjectMapper().readTree(response.body());
+    if (response.statusCode() >= 400) {
+        JsonNode detail = body.get("detail");
+        String message = detail.isArray() ? detail.get(0).get("msg").asText() : detail.asText();
+        throw new RuntimeException("Erreur " + response.statusCode() + " : " + message);
+    }
+    return body;
+}
+```
+</TabItem>
+</Tabs>
+
+## Depuis une page web
+
+L'API accepte les requêtes faites depuis le navigateur par les origines autorisées. Si votre
+application web reçoit une erreur **CORS** (le navigateur refuse de lire la réponse d'un autre
+domaine), demandez aux responsables de l'API d'ajouter l'adresse de votre site à la liste des
+origines autorisées. L'en-tête `X-Total-Count` est lisible depuis le navigateur.

@@ -1,0 +1,141 @@
+---
+title: Progression
+description: Situer un étudiant dans son programme et trouver les cours qu'il peut suivre.
+sidebar:
+  order: 3
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+{/* > **Question** : un étudiant au baccalauréat en informatique a réussi six cours. Que lui
+> reste-t-il comme cours obligatoires, et quels cours peut-il suivre maintenant ? */}
+
+:::note[Code des exemples]
+Les exemples réutilisent la constante `BASE_URL` et, en Java, un `HttpClient client` et un
+`ObjectMapper mapper`, présentés dans [Premier appel](/guide-api/demarrer/premier-appel/).
+:::
+
+## La requête
+
+`POST /programs/{id}/progress` reçoit les cours réussis et classe chacun d'eux dans chaque parcours
+du programme. Les champs facultatifs `gpa` et `total_credits` servent à évaluer les cours
+accessibles (voir [Évaluation](/guide-api/donnees/evaluation/)).
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+const response = await fetch(`${BASE_URL}/programs/117510/progress`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    completed_courses: ["IFT1015", "IFT1025", "IFT1065", "IFT1215", "MAT1400", "MAT1978"],
+    total_credits: 18,
+  }),
+});
+const progress = await response.json();
+
+for (const path of progress.paths) {
+  const { completed, remaining } = path.mandatory_credits;
+  console.log(`${path.title ?? "Segments communs"} : ${completed} crédits obligatoires faits, ${remaining} restants`);
+  const ready = path.accessible_courses.filter(c => c.status === "yes").map(c => c.id);
+  console.log("  Accessibles :", ready.join(", "));
+}
+```
+</TabItem>
+<TabItem label="Python">
+```python
+response = requests.post(f"{BASE_URL}/programs/117510/progress", json={
+    "completed_courses": ["IFT1015", "IFT1025", "IFT1065", "IFT1215", "MAT1400", "MAT1978"],
+    "total_credits": 18,
+})
+progress = response.json()
+
+for path in progress["paths"]:
+    credits = path["mandatory_credits"]
+    print(f"{path['title'] or 'Segments communs'} : {credits['completed']} crédits obligatoires faits, "
+          f"{credits['remaining']} restants")
+    ready = [c["id"] for c in path["accessible_courses"] if c["status"] == "yes"]
+    print("  Accessibles :", ", ".join(ready))
+```
+</TabItem>
+<TabItem label="Java">
+```java
+String body = mapper.writeValueAsString(Map.of(
+        "completed_courses", List.of("IFT1015", "IFT1025", "IFT1065", "IFT1215", "MAT1400", "MAT1978"),
+        "total_credits", 18));
+JsonNode progress = mapper.readTree(client.send(
+        HttpRequest.newBuilder(URI.create(BASE_URL + "/programs/117510/progress"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body)).build(),
+        HttpResponse.BodyHandlers.ofString()).body());
+
+for (JsonNode path : progress.get("paths")) {
+    JsonNode credits = path.get("mandatory_credits");
+    String title = path.get("title").isNull() ? "Segments communs" : path.get("title").asText();
+    System.out.printf("%s : %s crédits obligatoires faits, %s restants%n", title,
+            credits.get("completed").asText(), credits.get("remaining").asText());
+    List<String> ready = new ArrayList<>();
+    path.get("accessible_courses").forEach(c -> { if (c.get("status").asText().equals("yes")) ready.add(c.get("id").asText()); });
+    System.out.println("  Accessibles : " + String.join(", ", ready));
+}
+```
+</TabItem>
+</Tabs>
+
+## La réponse
+
+La réponse contient un élément par **parcours** (voir [Programmes](/guide-api/donnees/programmes/#parcours)).
+Chaque parcours classe les cours réussis **sans les attribuer** à un bloc particulier : l'API décrit
+la situation, elle ne prend pas de décision à la place du programme.
+
+```json
+{
+  "program_id": "117510",
+  "program_name": "Baccalauréat en informatique",
+  "unknown_courses": [],
+  "paths": [
+    {
+      "title": "Science des données",
+      "kind": "orientation",
+      "segments": ["01", "02"],
+      "mandatory_credits": { "completed": 15, "remaining": 39 },
+      "completed_credits": { "min": 15, "max": 18 },
+      "mandatory": [
+        { "bloc_id": "01A", "bloc_name": "…", "type": "Obligatoire", "min": 33, "max": 33,
+          "courses": [
+            { "id": "IFT1015", "credits": 3, "completed": true,  "via_equivalent": null },
+            { "id": "IFT2255", "credits": 3, "completed": false, "via_equivalent": null }
+          ] }
+      ],
+      "options": [ { "course": "MAT1978", "credits": 3, "via_equivalent_of": null, "blocs": [ { "bloc_id": "01B", "…": "…" } ] } ],
+      "elective_or_outside": [ { "course": "…", "credits": 3, "listed_in_choice_blocs": [] } ],
+      "other_blocs": [],
+      "accessible_courses": [
+        { "id": "IFT2255", "status": "yes", "types": ["obligatoire"], "to_verify": [] },
+        { "id": "STT1700", "status": "unknown", "types": ["option"], "to_verify": ["compétence équivalente"] }
+      ]
+    }
+  ]
+}
+```
+
+*Valeurs abrégées pour l'exemple.*
+
+| Champ | Contenu |
+|---|---|
+| `mandatory` | Pour chaque bloc obligatoire, la liste à cocher de **tous** ses cours (`completed`) |
+| `options` | Chaque cours réussi qui figure dans un bloc à option, avec **tous** les blocs qui pourraient l'accepter |
+| `elective_or_outside` | Les autres cours réussis : au choix, ou hors programme |
+| `other_blocs` | Les blocs d'un autre type (stage…), tels quels |
+| `mandatory_credits` | Crédits des cours obligatoires réussis et restants |
+| `completed_credits` | Fourchette des crédits réussis qui comptent : `min` (sûrement), `max` (au plus) |
+| `accessible_courses` | Cours du parcours non réussis dont les préalables sont satisfaits (`yes`) ou à vérifier (`unknown`) |
+| `unknown_courses` | Sigles envoyés qui n'existent pas dans le catalogue |
+
+## Pièges
+
+- **Un même cours peut apparaître dans plusieurs parcours et plusieurs catégories** : c'est voulu,
+  puisque l'API n'attribue pas les cours aux blocs.
+- **`completed_credits.max` est une borne haute**, pas une estimation : les maximums des blocs ne
+  sont pas appliqués.
+- **Vérifiez `unknown_courses`** : un sigle mal écrit est ignoré sans erreur.
+- **Pour un parcours précis**, filtrez `paths` par `title` côté client.

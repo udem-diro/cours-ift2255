@@ -1,0 +1,335 @@
+.cg-root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* toolbar: legend + zoom controls */
+.cg-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.cg-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.cg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--ligne);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem 0.3rem 0.5rem;
+  font: 500 0.82rem/1 var(--police-titres);
+  color: var(--encre);
+  cursor: pointer;
+  transition: border-color 120ms ease, opacity 160ms ease;
+}
+.cg-chip:hover {
+  border-color: var(--encre);
+}
+.cg-chip-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  flex: none;
+}
+.cg-zoom {
+  display: flex;
+  gap: 0.35rem;
+}
+.cg-zoom button {
+  border: 1px solid var(--ligne);
+  background: #fff;
+  color: var(--encre);
+  border-radius: 8px;
+  min-width: 2.1rem;
+  height: 2.1rem;
+  font: 600 1rem/1 var(--police-titres);
+  cursor: pointer;
+}
+.cg-zoom button:hover {
+  border-color: var(--encre);
+}
+.cg-zoom .cg-reset {
+  padding: 0 0.8rem;
+  font-size: 0.82rem;
+}
+
+/* stage */
+.cg-stage {
+  position: relative;
+  height: clamp(420px, 62vh, 640px);
+  /* border: 1px solid var(--ligne); */
+  /* border-radius: 16px; */
+  background:
+    radial-gradient(circle at 1px 1px, #dfe5ee 1px, transparent 0) 0 0 / 26px 26px,
+    var(--papier-carte);
+  overflow: hidden;
+}
+.cg-stage svg {
+  display: block;
+  touch-action: none;
+  cursor: grab;
+}
+.cg-stage svg:active {
+  cursor: grabbing;
+}
+
+/* graph elements */
+.cg-theme-edges line,
+.cg-concept-edges line {
+  stroke: #8d99ad;
+  vector-effect: non-scaling-stroke;
+}
+.cg-theme-edges line {
+  stroke-width: 2px;
+  stroke-dasharray: 6 7;
+}
+.cg-concept-edges line {
+  stroke-width: 1.4px;
+}
+.cg-theme circle {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1.5px;
+}
+.cg-theme,
+.cg-concept,
+.cg-notion {
+  cursor: pointer;
+  outline: none;
+  transition: opacity 220ms ease;
+}
+.cg-theme:focus-visible circle,
+.cg-concept:focus-visible circle {
+  stroke: var(--encre);
+  stroke-width: 3px;
+}
+.cg-theme-label {
+  font-family: var(--police-titres);
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+.cg-concept-label {
+  font-family: var(--police-titres);
+  font-weight: 500;
+  fill: var(--encre);
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--papier-carte);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.cg-notion line {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1px;
+}
+.cg-notion-label {
+  font-family: var(--police-texte);
+  fill: #46516a;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--papier-carte);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+/* detail panel (overlay on wide screens, stacked on narrow ones) */
+.cg-panel {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: min(330px, calc(100% - 1.8rem));
+  max-height: calc(100% - 1.8rem);
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--ligne);
+  border-top: 4px solid;
+  border-radius: 12px;
+  padding: 0.9rem 1rem 1rem;
+  box-shadow: 0 10px 30px rgba(27, 36, 55, 0.12);
+}
+.cg-panel h3 {
+  margin: 0 0 0.4rem;
+  font: 700 1.05rem/1.25 var(--police-titres);
+  color: var(--encre);
+  padding-right: 1.4rem;
+}
+.cg-panel p {
+  margin: 0 0 0.55rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #3a445c;
+}
+.cg-panel-kicker {
+  font: 600 0.72rem/1.3 var(--police-titres);
+  margin: 0 0 0.15rem;
+}
+.cg-panel-phases {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.cg-badge {
+  font: 600 0.7rem/1 var(--police-titres);
+  color: #fff;
+  background: var(--encre);
+  border-radius: 999px;
+  padding: 0.28rem 0.6rem;
+}
+.cg-panel-notions {
+  font-size: 0.82rem;
+  color: #5a6478;
+}
+.cg-panel-list {
+  margin: 0.2rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.cg-panel-list button {
+  background: none;
+  border: none;
+  padding: 0.15rem 0;
+  font: 500 0.86rem/1.4 var(--police-texte);
+  color: var(--encre);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.cg-panel-close {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.55rem;
+  border: none;
+  background: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: #5a6478;
+  cursor: pointer;
+}
+
+.cg-hint {
+  margin: 0;
+  font-size: 0.84rem;
+  color: #5a6478;
+}
+
+/* timeline */
+.cg-timeline {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.cg-phase {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  text-align: left;
+  background: #fff;
+  border: 1px solid var(--ligne);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.cg-phase:hover {
+  border-color: var(--encre);
+}
+.cg-phase.is-active {
+  background: var(--encre);
+  border-color: var(--encre);
+}
+.cg-phase-num {
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  border: 2px solid var(--encre);
+  display: grid;
+  place-items: center;
+  font: 700 0.95rem/1 var(--police-titres);
+  color: var(--encre);
+}
+.cg-phase.is-active .cg-phase-num {
+  border-color: #fff;
+  color: #fff;
+}
+.cg-phase-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.cg-phase-label {
+  font: 600 0.9rem/1.25 var(--police-titres);
+  color: var(--encre);
+}
+.cg-phase-detail {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #5a6478;
+}
+.cg-phase-deadline {
+  font: 600 0.72rem/1.3 var(--police-titres);
+  color: var(--encre);
+}
+.cg-phase.is-active .cg-phase-label,
+.cg-phase.is-active .cg-phase-detail,
+.cg-phase.is-active .cg-phase-deadline {
+  color: #fff;
+}
+.cg-timeline-hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #5a6478;
+  min-height: 1.2em;
+}
+
+@media (max-width: 900px) {
+  .cg-timeline {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .cg-timeline {
+    grid-template-columns: 1fr;
+  }
+  .cg-panel {
+    position: static;
+    width: auto;
+    max-height: none;
+    margin: 0.6rem;
+  }
+  .cg-stage {
+    height: auto;
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cg-theme,
+  .cg-concept,
+  .cg-notion,
+  .cg-chip,
+  .cg-phase {
+    transition: none;
+  }
+}

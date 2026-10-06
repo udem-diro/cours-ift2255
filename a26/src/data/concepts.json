@@ -1,0 +1,845 @@
+{
+  "canvas": {
+    "width": 1800,
+    "height": 1150
+  },
+  "phases": [
+    {
+      "id": "p1",
+      "num": 1,
+      "label": "Analyse et exigences",
+      "detail": "Besoins, cas d'utilisation, premiers modèles",
+      "deadline": "2 octobre 2026"
+    },
+    {
+      "id": "p2",
+      "num": 2,
+      "label": "Conception",
+      "detail": "Modèle de données, diagrammes de classes, analyse conceptuelle"
+    },
+    {
+      "id": "p3",
+      "num": 3,
+      "label": "Spécifications, implémentation et tests",
+      "detail": "Du modèle au code testé"
+    },
+    {
+      "id": "p4",
+      "num": 4,
+      "label": "Automatisation et déploiement",
+      "detail": "Pipelines, tests automatisés, amélioration continue"
+    }
+  ],
+  "themes": [
+    {
+      "id": "exigences",
+      "label": "Exigences et analyse",
+      "color": "#4263EB",
+      "summary": "Comprendre le problème avant de construire la solution : qui sont les parties prenantes, ce dont elles ont besoin, et comment le formuler de façon vérifiable.",
+      "x": 380,
+      "y": 330,
+      "r": 225
+    },
+    {
+      "id": "modelisation",
+      "label": "Modélisation et conception",
+      "color": "#0CA678",
+      "summary": "Représenter le système avant et pendant sa construction : structures de données, comportements, et principes qui rendent une conception durable.",
+      "x": 900,
+      "y": 275,
+      "r": 225
+    },
+    {
+      "id": "architecture",
+      "label": "Architecture",
+      "color": "#F08C00",
+      "summary": "La vue d'ensemble du système : comment il se découpe, comment ses parties communiquent, et comment on documente ces choix.",
+      "x": 1420,
+      "y": 330,
+      "r": 225
+    },
+    {
+      "id": "implementation",
+      "label": "Implémentation",
+      "color": "#E64980",
+      "summary": "Écrire du code que d'autres peuvent lire, réviser et faire évoluer, en gardant la dette technique sous contrôle.",
+      "x": 380,
+      "y": 825,
+      "r": 225
+    },
+    {
+      "id": "verification",
+      "label": "Vérification et validation",
+      "color": "#7048E8",
+      "summary": "S'assurer que le système fonctionne comme prévu, et qu'il répond bien au besoin initial : deux questions distinctes.",
+      "x": 900,
+      "y": 880,
+      "r": 225
+    },
+    {
+      "id": "processus",
+      "label": "Processus de développement",
+      "color": "#1098AD",
+      "summary": "Les méthodes et outils qui permettent à une équipe de livrer régulièrement : itérations, intégration continue, coordination.",
+      "x": 1420,
+      "y": 825,
+      "r": 225
+    }
+  ],
+  "concepts": [
+    {
+      "id": "elicitation-besoins",
+      "theme": "exigences",
+      "label": "Élicitation des besoins",
+      "phases": [
+        "p1"
+      ],
+      "summary": "Recueillir les besoins auprès des parties prenantes, souvent par entrevues et observation ; l'élicitation désigne ce travail de découverte, car les besoins sont rarement donnés tels quels.",
+      "x": 277.8,
+      "y": 271.0,
+      "notions": [
+        {
+          "id": "entrevues",
+          "label": "Entrevues avec parties prenantes",
+          "x": 277.8,
+          "y": 207.0
+        },
+        {
+          "id": "personas",
+          "label": "Personas",
+          "x": 222.4,
+          "y": 239.0
+        },
+        {
+          "id": "scenarios",
+          "label": "Scénarios utilisateur",
+          "x": 222.4,
+          "y": 303.0
+        }
+      ],
+      "seance": "Compréhension des exigences"
+    },
+    {
+      "id": "specification-exigences",
+      "theme": "exigences",
+      "label": "Spécification des exigences",
+      "phases": [
+        "p1",
+        "p3"
+      ],
+      "summary": "Formuler les exigences de façon précise et vérifiable, en distinguant ce que le système fait (fonctionnel) de la qualité attendue (non fonctionnel).",
+      "x": 439.0,
+      "y": 227.8,
+      "notions": [
+        {
+          "id": "exigences-fonctionnelles",
+          "label": "Exigences fonctionnelles",
+          "x": 503.0,
+          "y": 227.8
+        },
+        {
+          "id": "exigences-non-fonctionnelles",
+          "label": "Exigences non fonctionnelles",
+          "x": 471.0,
+          "y": 172.4
+        },
+        {
+          "id": "criteres-acceptation",
+          "label": "Critères d'acceptation",
+          "x": 407.0,
+          "y": 172.4
+        }
+      ],
+      "seance": "Compréhension des exigences"
+    },
+    {
+      "id": "cas-utilisation",
+      "theme": "exigences",
+      "label": "Cas d'utilisation",
+      "phases": [
+        "p1"
+      ],
+      "summary": "Décrire les interactions entre les acteurs et le système : le diagramme donne la carte, les fiches et les diagrammes d'activités donnent le détail de chaque flux.",
+      "x": 482.2,
+      "y": 389.0,
+      "notions": [
+        {
+          "id": "diagramme-cu",
+          "label": "Diagramme de cas d'utilisation",
+          "x": 482.2,
+          "y": 453.0
+        },
+        {
+          "id": "fiches-cu",
+          "label": "Fiches de cas",
+          "x": 537.6,
+          "y": 421.0
+        },
+        {
+          "id": "diagrammes-activites",
+          "label": "Diagrammes d'activités",
+          "x": 537.6,
+          "y": 357.0
+        }
+      ],
+      "seance": "Cas d'utilisation"
+    },
+    {
+      "id": "analyse-domaine",
+      "theme": "exigences",
+      "label": "Analyse du domaine",
+      "phases": [
+        "p1",
+        "p2"
+      ],
+      "summary": "Comprendre le vocabulaire, les règles et les contraintes du domaine d'affaires ; dans bien des projets, c'est là que se cachent les vraies difficultés.",
+      "x": 321.0,
+      "y": 432.2,
+      "notions": [
+        {
+          "id": "glossaire",
+          "label": "Glossaire",
+          "x": 257.0,
+          "y": 432.2
+        },
+        {
+          "id": "regles-affaires",
+          "label": "Règles d'affaires",
+          "x": 289.0,
+          "y": 487.6
+        },
+        {
+          "id": "contraintes-reelles",
+          "label": "Contraintes du monde réel",
+          "x": 353.0,
+          "y": 487.6
+        }
+      ],
+      "seance": "Analyse"
+    },
+    {
+      "id": "modelisation-uml",
+      "theme": "modelisation",
+      "label": "Modélisation UML",
+      "phases": [
+        "p2"
+      ],
+      "summary": "Un langage graphique standardisé pour décrire la structure et le comportement d'un système ; on en utilise en pratique un sous-ensemble bien choisi.",
+      "x": 841.0,
+      "y": 172.8,
+      "notions": [
+        {
+          "id": "diagrammes-classes",
+          "label": "Diagrammes de classes",
+          "x": 873.0,
+          "y": 117.4
+        },
+        {
+          "id": "diagrammes-sequence",
+          "label": "Diagrammes de séquence",
+          "x": 809.0,
+          "y": 117.4
+        },
+        {
+          "id": "diagrammes-etats",
+          "label": "Diagrammes d'états",
+          "x": 777.0,
+          "y": 172.8
+        }
+      ],
+      "seance": "Modélisation ; Diagramme de classes"
+    },
+    {
+      "id": "modele-donnees",
+      "theme": "modelisation",
+      "label": "Modèle de données",
+      "phases": [
+        "p2"
+      ],
+      "summary": "Identifier les entités du domaine, leurs associations et les invariants (les propriétés qui doivent rester vraies), puis les traduire en schéma.",
+      "x": 1002.2,
+      "y": 216.0,
+      "notions": [
+        {
+          "id": "entites-associations",
+          "label": "Entités et associations",
+          "x": 1057.6,
+          "y": 248.0
+        },
+        {
+          "id": "schema-relationnel",
+          "label": "Schéma relationnel",
+          "x": 1057.6,
+          "y": 184.0
+        },
+        {
+          "id": "invariants",
+          "label": "Invariants",
+          "x": 1002.2,
+          "y": 152.0
+        }
+      ],
+      "seance": "Modèle de données"
+    },
+    {
+      "id": "principes-conception",
+      "theme": "modelisation",
+      "label": "Principes de conception",
+      "phases": [
+        "p2",
+        "p3"
+      ],
+      "summary": "Des principes comme SOLID guident les choix de structure ; un faible couplage et une forte cohésion rendent souvent le code plus facile à faire évoluer.",
+      "x": 959.0,
+      "y": 377.2,
+      "notions": [
+        {
+          "id": "solid",
+          "label": "SOLID",
+          "x": 927.0,
+          "y": 432.6
+        },
+        {
+          "id": "couplage-cohesion",
+          "label": "Couplage et cohésion",
+          "x": 991.0,
+          "y": 432.6
+        },
+        {
+          "id": "encapsulation",
+          "label": "Encapsulation",
+          "x": 1023.0,
+          "y": 377.2
+        }
+      ],
+      "seance": "Conception"
+    },
+    {
+      "id": "patrons-conception",
+      "theme": "modelisation",
+      "label": "Patrons de conception",
+      "phases": [
+        "p2",
+        "p3"
+      ],
+      "summary": "Des solutions éprouvées à des problèmes de conception récurrents, avec un vocabulaire partagé : Observer, Strategy, Factory, MVC.",
+      "x": 797.8,
+      "y": 334.0,
+      "notions": [
+        {
+          "id": "observer",
+          "label": "Observer",
+          "x": 752.5,
+          "y": 288.7
+        },
+        {
+          "id": "strategy",
+          "label": "Strategy",
+          "x": 734.0,
+          "y": 339.6
+        },
+        {
+          "id": "factory",
+          "label": "Factory",
+          "x": 761.1,
+          "y": 386.4
+        },
+        {
+          "id": "mvc",
+          "label": "MVC",
+          "x": 814.4,
+          "y": 395.8
+        }
+      ]
+    },
+    {
+      "id": "vues-architecturales",
+      "theme": "architecture",
+      "label": "Vues architecturales",
+      "phases": [
+        "p1",
+        "p2"
+      ],
+      "summary": "Documenter l'architecture à plusieurs niveaux de détail ; le modèle C4 propose une progression du contexte global vers les conteneurs et composants.",
+      "x": 1326.5,
+      "y": 276.0,
+      "notions": [
+        {
+          "id": "modele-c4",
+          "label": "Modèle C4 : contexte et conteneurs",
+          "x": 1304.6,
+          "y": 215.9
+        },
+        {
+          "id": "diagramme-deploiement",
+          "label": "Diagramme de déploiement",
+          "x": 1263.5,
+          "y": 287.1
+        }
+      ],
+      "seance": "Modélisation (vues 4+1)"
+    },
+    {
+      "id": "styles-architecturaux",
+      "theme": "architecture",
+      "label": "Styles architecturaux",
+      "phases": [
+        "p2"
+      ],
+      "summary": "Des façons récurrentes d'organiser un système : en couches, client-serveur, monolithe ou microservices ; chaque style vient avec ses compromis.",
+      "x": 1513.5,
+      "y": 276.0,
+      "notions": [
+        {
+          "id": "architecture-couches",
+          "label": "Architecture en couches",
+          "x": 1568.9,
+          "y": 308.0
+        },
+        {
+          "id": "client-serveur",
+          "label": "Client-serveur",
+          "x": 1568.9,
+          "y": 244.0
+        },
+        {
+          "id": "monolithe-microservices",
+          "label": "Monolithe et microservices",
+          "x": 1513.5,
+          "y": 212.0
+        }
+      ]
+    },
+    {
+      "id": "api-interfaces",
+      "theme": "architecture",
+      "label": "API et interfaces",
+      "phases": [
+        "p2",
+        "p3"
+      ],
+      "summary": "Définir les points de contact entre les parties du système et avec l'extérieur : API REST, contrats d'interface, formats d'échange comme JSON.",
+      "x": 1420.0,
+      "y": 438.0,
+      "notions": [
+        {
+          "id": "api-rest",
+          "label": "API REST",
+          "x": 1364.6,
+          "y": 470.0
+        },
+        {
+          "id": "contrats-interface",
+          "label": "Contrats d'interface",
+          "x": 1420.0,
+          "y": 502.0
+        },
+        {
+          "id": "formats-echange",
+          "label": "Formats d'échange",
+          "x": 1475.4,
+          "y": 470.0
+        }
+      ]
+    },
+    {
+      "id": "pratiques-codage",
+      "theme": "implementation",
+      "label": "Pratiques de codage",
+      "phases": [
+        "p3"
+      ],
+      "summary": "Conventions, lisibilité, documentation et revue de code : des pratiques qui font qu'un code écrit par l'un peut être maintenu par les autres.",
+      "x": 380.0,
+      "y": 717.0,
+      "notions": [
+        {
+          "id": "conventions-lisibilite",
+          "label": "Conventions et lisibilité",
+          "x": 435.4,
+          "y": 685.0
+        },
+        {
+          "id": "revue-code",
+          "label": "Revue de code",
+          "x": 380.0,
+          "y": 653.0
+        },
+        {
+          "id": "documentation-code",
+          "label": "Documentation",
+          "x": 324.6,
+          "y": 685.0
+        }
+      ]
+    },
+    {
+      "id": "refactoring",
+      "theme": "implementation",
+      "label": "Refactoring",
+      "phases": [
+        "p3",
+        "p4"
+      ],
+      "summary": "Améliorer la structure du code sans changer son comportement, pour rembourser la dette technique, c'est-à-dire le coût accumulé des raccourcis passés.",
+      "x": 473.5,
+      "y": 879.0,
+      "notions": [
+        {
+          "id": "dette-technique",
+          "label": "Dette technique",
+          "x": 473.5,
+          "y": 943.0
+        },
+        {
+          "id": "code-smells",
+          "label": "Code smells",
+          "x": 528.9,
+          "y": 911.0
+        },
+        {
+          "id": "refactorings-courants",
+          "label": "Refactorings courants",
+          "x": 528.9,
+          "y": 847.0
+        }
+      ]
+    },
+    {
+      "id": "gestion-versions",
+      "theme": "implementation",
+      "label": "Gestion de versions",
+      "phases": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "summary": "Suivre l'évolution du code et collaborer sans se marcher dessus : Git, branches, fusion et pull requests rythment le travail d'équipe pendant toute la session.",
+      "x": 286.5,
+      "y": 879.0,
+      "notions": [
+        {
+          "id": "git",
+          "label": "Git",
+          "x": 231.1,
+          "y": 847.0
+        },
+        {
+          "id": "branches-fusion",
+          "label": "Branches et fusion",
+          "x": 231.1,
+          "y": 911.0
+        },
+        {
+          "id": "pull-requests",
+          "label": "Pull requests",
+          "x": 286.5,
+          "y": 943.0
+        }
+      ]
+    },
+    {
+      "id": "tests-unitaires",
+      "theme": "verification",
+      "label": "Tests unitaires",
+      "phases": [
+        "p3"
+      ],
+      "summary": "Vérifier chaque unité de code isolément, avec JUnit et des assertions ; la couverture mesure quelle part du code est exercée par les tests.",
+      "x": 841.0,
+      "y": 777.8,
+      "notions": [
+        {
+          "id": "junit",
+          "label": "JUnit",
+          "x": 873.0,
+          "y": 722.4
+        },
+        {
+          "id": "assertions",
+          "label": "Assertions",
+          "x": 809.0,
+          "y": 722.4
+        },
+        {
+          "id": "couverture",
+          "label": "Couverture de code",
+          "x": 777.0,
+          "y": 777.8
+        }
+      ]
+    },
+    {
+      "id": "tests-integration",
+      "theme": "verification",
+      "label": "Tests d'intégration et système",
+      "phases": [
+        "p3",
+        "p4"
+      ],
+      "summary": "Vérifier que les parties fonctionnent ensemble : tests d'API, puis tests de bout en bout qui traversent tout le système comme un utilisateur.",
+      "x": 1002.2,
+      "y": 821.0,
+      "notions": [
+        {
+          "id": "tests-api",
+          "label": "Tests d'API",
+          "x": 1065.2,
+          "y": 832.1
+        },
+        {
+          "id": "tests-bout-en-bout",
+          "label": "Tests de bout en bout",
+          "x": 1024.1,
+          "y": 760.9
+        }
+      ]
+    },
+    {
+      "id": "strategies-test",
+      "theme": "verification",
+      "label": "Stratégies de test",
+      "phases": [
+        "p3",
+        "p4"
+      ],
+      "summary": "Choisir quoi tester et comment : boîte noire ou blanche, cas limites, tests de régression qui protègent contre le retour de bogues corrigés.",
+      "x": 959.0,
+      "y": 982.2,
+      "notions": [
+        {
+          "id": "boite-noire-blanche",
+          "label": "Boîte noire et boîte blanche",
+          "x": 927.0,
+          "y": 1037.6
+        },
+        {
+          "id": "cas-limites",
+          "label": "Cas limites",
+          "x": 991.0,
+          "y": 1037.6
+        },
+        {
+          "id": "tests-regression",
+          "label": "Tests de régression",
+          "x": 1023.0,
+          "y": 982.2
+        }
+      ]
+    },
+    {
+      "id": "validation",
+      "theme": "verification",
+      "label": "Validation",
+      "phases": [
+        "p1",
+        "p3"
+      ],
+      "summary": "Vérifier qu'on a construit le bon système : traçabilité entre exigences et livrables, et démonstration aux parties prenantes.",
+      "x": 797.8,
+      "y": 939.0,
+      "notions": [
+        {
+          "id": "tracabilite",
+          "label": "Traçabilité aux exigences",
+          "x": 734.8,
+          "y": 927.9
+        },
+        {
+          "id": "demonstration",
+          "label": "Démonstration aux parties prenantes",
+          "x": 775.9,
+          "y": 999.1
+        }
+      ]
+    },
+    {
+      "id": "methodes-developpement",
+      "theme": "processus",
+      "label": "Méthodes de développement",
+      "phases": [
+        "p1",
+        "p3"
+      ],
+      "summary": "Organiser le travail dans le temps : approches agiles, itérations et incréments, planification adaptée à ce qu'on apprend en cours de route.",
+      "x": 1361.0,
+      "y": 722.8,
+      "notions": [
+        {
+          "id": "agilite",
+          "label": "Agilité",
+          "x": 1393.0,
+          "y": 667.4
+        },
+        {
+          "id": "iterations-increments",
+          "label": "Itérations et incréments",
+          "x": 1329.0,
+          "y": 667.4
+        },
+        {
+          "id": "planification",
+          "label": "Planification",
+          "x": 1297.0,
+          "y": 722.8
+        }
+      ],
+      "seance": "Modèles de développement"
+    },
+    {
+      "id": "integration-continue",
+      "theme": "processus",
+      "label": "Intégration continue",
+      "phases": [
+        "p4"
+      ],
+      "summary": "Construire et tester le projet automatiquement à chaque changement, par exemple avec GitHub Actions, pour détecter les problèmes tôt.",
+      "x": 1522.2,
+      "y": 766.0,
+      "notions": [
+        {
+          "id": "pipelines-ci",
+          "label": "Pipelines CI",
+          "x": 1577.6,
+          "y": 798.0
+        },
+        {
+          "id": "automatisation-builds",
+          "label": "Automatisation des builds",
+          "x": 1577.6,
+          "y": 734.0
+        },
+        {
+          "id": "github-actions",
+          "label": "GitHub Actions",
+          "x": 1522.2,
+          "y": 702.0
+        }
+      ]
+    },
+    {
+      "id": "deploiement",
+      "theme": "processus",
+      "label": "Déploiement",
+      "phases": [
+        "p4"
+      ],
+      "summary": "Amener le logiciel jusqu'à ses utilisateurs de façon répétable : livraison continue, environnements distincts, conteneurisation.",
+      "x": 1479.0,
+      "y": 927.2,
+      "notions": [
+        {
+          "id": "livraison-continue",
+          "label": "Livraison continue",
+          "x": 1447.0,
+          "y": 982.6
+        },
+        {
+          "id": "environnements",
+          "label": "Environnements",
+          "x": 1511.0,
+          "y": 982.6
+        },
+        {
+          "id": "conteneurisation",
+          "label": "Conteneurisation",
+          "x": 1543.0,
+          "y": 927.2
+        }
+      ]
+    },
+    {
+      "id": "coordination-equipe",
+      "theme": "processus",
+      "label": "Coordination d'équipe",
+      "phases": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "summary": "Répartir les rôles, suivre les tâches et communiquer : la partie humaine du génie logiciel, présente du premier au dernier jour du projet.",
+      "x": 1317.8,
+      "y": 884.0,
+      "notions": [
+        {
+          "id": "roles",
+          "label": "Rôles",
+          "x": 1262.4,
+          "y": 852.0
+        },
+        {
+          "id": "gestion-taches",
+          "label": "Gestion des tâches",
+          "x": 1262.4,
+          "y": 916.0
+        },
+        {
+          "id": "communication",
+          "label": "Communication",
+          "x": 1317.8,
+          "y": 948.0
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": "elicitation-besoins",
+      "target": "cas-utilisation"
+    },
+    {
+      "source": "specification-exigences",
+      "target": "validation"
+    },
+    {
+      "source": "specification-exigences",
+      "target": "strategies-test"
+    },
+    {
+      "source": "cas-utilisation",
+      "target": "tests-integration"
+    },
+    {
+      "source": "analyse-domaine",
+      "target": "modele-donnees"
+    },
+    {
+      "source": "modelisation-uml",
+      "target": "principes-conception"
+    },
+    {
+      "source": "modele-donnees",
+      "target": "api-interfaces"
+    },
+    {
+      "source": "principes-conception",
+      "target": "refactoring"
+    },
+    {
+      "source": "patrons-conception",
+      "target": "pratiques-codage"
+    },
+    {
+      "source": "vues-architecturales",
+      "target": "deploiement"
+    },
+    {
+      "source": "api-interfaces",
+      "target": "tests-integration"
+    },
+    {
+      "source": "gestion-versions",
+      "target": "integration-continue"
+    },
+    {
+      "source": "integration-continue",
+      "target": "deploiement"
+    },
+    {
+      "source": "methodes-developpement",
+      "target": "coordination-equipe"
+    }
+  ]
+}

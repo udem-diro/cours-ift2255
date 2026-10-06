@@ -1,0 +1,149 @@
+---
+title: Vérifier un choix de cours
+description: Éligibilité, offre, problèmes et conflits d'horaire d'un choix de cours pour une session.
+sidebar:
+  order: 4
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+{/* > **Question** : je prévois IFT2255 et MAT1400 à l'automne 2026, dans la section A de MAT1400.
+> Est-ce possible ? */}
+
+:::note[Code des exemples]
+Les exemples réutilisent la constante `BASE_URL` et, en Java, un `HttpClient client` et un
+`ObjectMapper mapper`, présentés dans [Premier appel](/guide-api/demarrer/premier-appel/).
+:::
+
+## Trois routes, selon le besoin
+
+| Besoin | Route |
+|---|---|
+| Un seul cours : puis-je le suivre ? | `POST /courses/{id}/eligibility` |
+| Tous les cours d'un programme que je peux suivre | `POST /programs/{id}/eligible-courses` |
+| Un ensemble de cours pour une session, avec les conflits d'horaire | `POST /courseplan/check` |
+
+Ce guide présente la troisième, la plus complète. Les deux autres renvoient la même évaluation
+(voir [Évaluation des exigences](/guide-api/donnees/evaluation/)).
+
+## La requête
+
+| Champ | Rôle |
+|---|---|
+| `semester` | La session **(obligatoire)** |
+| `courses` | Les cours prévus ; déduits de `sections` si la liste est vide |
+| `sections` | Les sections et options choisies, pour les conflits (identifiants de [Horaires](/guide-api/donnees/horaires/#identifiants-de-section)) |
+| `checks` | `eligibility`, `conflicts`, ou les deux (par défaut) |
+| `completed_courses`, `program_id`, `gpa`, `total_credits` | La situation de l'étudiant |
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+const plan = {
+  semester: "A26",
+  courses: ["IFT2255", "MAT1400"],
+  sections: ["A26MAT1400A"],
+  completed_courses: ["IFT1015", "IFT1025"],
+  program_id: "117510",
+};
+const result = await (await fetch(`${BASE_URL}/courseplan/check`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(plan),
+})).json();
+
+result.courses.forEach(c => console.log(c.id, c.eligibility.status, c.offered));
+result.conflicts.forEach(c => console.log(`Conflit ${c.kind} : ${c.a} et ${c.b}, ${c.day ?? ""} ${c.a_time} / ${c.b_time}`));
+result.issues.forEach(i => console.log("Problème :", i.message));
+if (result.unselected.length) console.log("Section à choisir :", result.unselected.join(", "));
+```
+</TabItem>
+<TabItem label="Python">
+```python
+plan = {
+    "semester": "A26",
+    "courses": ["IFT2255", "MAT1400"],
+    "sections": ["A26MAT1400A"],
+    "completed_courses": ["IFT1015", "IFT1025"],
+    "program_id": "117510",
+}
+result = requests.post(f"{BASE_URL}/courseplan/check", json=plan).json()
+
+for course in result["courses"]:
+    print(course["id"], course["eligibility"]["status"], course["offered"])
+for conflict in result["conflicts"]:
+    print(f"Conflit {conflict['kind']} : {conflict['a']} et {conflict['b']}, {conflict['a_time']} / {conflict['b_time']}")
+for issue in result["issues"]:
+    print("Problème :", issue["message"])
+if result["unselected"]:
+    print("Section à choisir :", ", ".join(result["unselected"]))
+```
+</TabItem>
+<TabItem label="Java">
+```java
+String body = mapper.writeValueAsString(Map.of(
+        "semester", "A26",
+        "courses", List.of("IFT2255", "MAT1400"),
+        "sections", List.of("A26MAT1400A"),
+        "completed_courses", List.of("IFT1015", "IFT1025"),
+        "program_id", "117510"));
+JsonNode result = mapper.readTree(client.send(
+        HttpRequest.newBuilder(URI.create(BASE_URL + "/courseplan/check"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body)).build(),
+        HttpResponse.BodyHandlers.ofString()).body());
+
+result.get("courses").forEach(c -> System.out.println(
+        c.get("id").asText() + " " + c.get("eligibility").get("status").asText()));
+result.get("conflicts").forEach(c -> System.out.println("Conflit " + c.get("kind").asText()
+        + " : " + c.get("a").asText() + " et " + c.get("b").asText()));
+result.get("issues").forEach(i -> System.out.println("Problème : " + i.get("message").asText()));
+```
+</TabItem>
+</Tabs>
+
+## La réponse
+
+```json
+{
+  "semester": "A26",
+  "credits": 7.0,
+  "courses": [
+    { "id": "IFT2255", "name": "Génie logiciel", "credits": 3.0,
+      "offered": { "term": true, "schedule": true },
+      "eligibility": { "status": "yes", "missing_courses": [], "unmet": [], "to_verify": [],
+                       "via_equivalent": [], "concomitants": null } }
+  ],
+  "selected": ["A26IFT2255A", "A26MAT1400A"],
+  "conflicts": [
+    { "kind": "meeting", "a": "A26IFT2255A", "b": "A26MAT1400A", "day": "Ma",
+      "a_time": "13:30-15:29", "b_time": "14:30-16:29", "dates": [["2026-09-01", "2026-12-09"]] }
+  ],
+  "warnings": [],
+  "unselected": [],
+  "missing_choices": [],
+  "unscheduled": [],
+  "issues": []
+}
+```
+
+*Exemple illustratif.*
+
+| Champ | Contenu |
+|---|---|
+| `courses[].eligibility` | Le résultat de l'évaluation ; `concomitants` indique les cours à suivre en même temps qui ne sont ni réussis ni prévus |
+| `courses[].offered` | `term` : offert habituellement à cette saison ; `schedule` : un horaire existe pour la session (`null` si la base n'a encore aucun horaire pour cette session) |
+| `selected` | Les sections et options réellement vérifiées, y compris celles retenues automatiquement |
+| `conflicts` | Paires en conflit : rencontres (`meeting`) ou examens (`exam`), avec les plages de dates communes |
+| `warnings` | Deux examens le même jour, sans chevauchement |
+| `unselected` | Cours qui ont plusieurs sections : il faut en choisir une |
+| `missing_choices` | Sections dont un choix (TP, atelier) n'a pas d'option sélectionnée |
+| `unscheduled` | Activités sans horaire des sections retenues |
+| `issues` | Problèmes du plan : cours déjà réussi, doublon par équivalence, exclusion, préalable prévu à la même session, identifiant inconnu, plusieurs sections du même cours |
+
+## Bon à savoir
+
+- **Un cours qui n'a qu'une section** la voit retenue automatiquement : inutile de l'envoyer.
+- **Choisir une option** (`A26MMD1108A1`) implique sa section.
+- **Les concomitants** sont satisfaits par les cours prévus à la même session.
+- **Un cours de demi-session** n'est en conflit que pendant les semaines communes (voir `dates`).
+- **Pour une session lointaine** sans horaire en base, seule l'éligibilité est vérifiée.
