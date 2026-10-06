@@ -10,19 +10,26 @@ const cle = (texte: string) => fr(echapper(texte)).replace(/\*\*(.+?)\*\*/g, '<s
 const chip = (terme: string) => terme.toLowerCase();
 ---
 
-<Layout title="IFT2255, Génie logiciel">
+<Layout title="IFT2255 – Génie logiciel (A26)">
   <section class="hero" aria-labelledby="titre-cours">
     <div class="hero-grille">
       <div class="hero-texte">
-        <p class="sigle"><span class="sigle-ift">IFT</span><span class="sigle-num">2255</span></p>
+        <p class="sigle">
+          <span class="sigle-ift">IFT</span>
+          <span class="sigle-num">2255</span>
+          <span> (Aut. 2026)</span>
+        </p>
         <h1 id="titre-cours">Génie logiciel</h1>
         <p class="these">Apprendre à bien concevoir et implémenter le bon logiciel.</p>
         <p class="ouverture">
-          Ce cours porte sur ce qui précède et encadre le code&nbsp;: comprendre une intention, la traduire
-          en exigences, la modéliser, puis concevoir et tester une solution qui pourra évoluer. 
+          Ce cours porte sur ce qui précède et encadre le code&nbsp;: comprendre une intention, 
+          la traduire en exigences, l'analyser et la modéliser, puis concevoir une 
+          solution robuste qui pourra facilement évoluer et s'adapter. 
           <br>
           Le cours vise également à développer une méthodologie de développement et une maitrise des outils
-          de programmation et collaboration. Un projet mené en équipe en est le fil conducteur.
+          de programmation et collaboration. 
+          <br>
+          Un projet mené en équipe en est le fil conducteur.
         </p>
       </div>
 
@@ -46,8 +53,17 @@ const chip = (terme: string) => terme.toLowerCase();
   </section>
   <div class="hero-bande">
     <p class="contenu">
-      <span>Université de Montréal, automne 2026</span>
-      <span class="hero-etat">{fr(projetEnCours)}</span>
+      <span>UML</span>
+      &bull;
+      <span>API REST</span>
+      &bull;
+      <span>Programmation orientée objet</span>
+      &bull;
+      <span>Modélisation C4</span>
+      &bull;
+      <span>Git</span>
+      &bull;
+      <span>CI / CD</span>
     </p>
   </div>
 
