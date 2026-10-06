@@ -1,0 +1,678 @@
+{
+  "theme": {
+    "id": "architecture",
+    "label": "Architecture",
+    "color": "#F08C00",
+    "intro": "La vue d'ensemble d'un système logiciel : les décisions qui en fixent la structure, les styles qui reviennent d'un projet à l'autre, les interfaces par lesquelles les parties communiquent, et les notations qui permettent de documenter tout cela."
+  },
+  "notions": [
+    {
+      "id": "architecture-logicielle",
+      "titre": "Qu'est-ce que l'architecture logicielle",
+      "resume": "L'ensemble des décisions structurantes sur un système : sa décomposition en parties, leurs responsabilités, leurs interactions, et les propriétés qui en découlent. Ce sont les décisions coûteuses à revenir en arrière.",
+      "etiquettes": [
+        "décisions",
+        "qualités",
+        "compromis"
+      ],
+      "facettes": [
+        {
+          "id": "decisions-structurantes",
+          "titre": "Décisions structurantes",
+          "resume": "Une décision est architecturale quand la défaire coûterait cher : découpage en composants, choix de persistance, mode de communication, frontières de déploiement.",
+          "points": [
+            "Découpage : quelles parties existent et de quoi chacune est responsable.",
+            "Communication : appels directs, API réseau, messages asynchrones, base partagée.",
+            "Frontières : ce qui s'exécute ensemble et ce qui s'exécute séparément.",
+            "Transversal : authentification, journalisation, gestion des erreurs, configuration."
+          ],
+          "enfants": [
+            {
+              "id": "exemple-decision",
+              "type": "texte",
+              "titre": "Une décision architecturale, une décision de code",
+              "corps": "Choisir de stocker les données dans une base relationnelle plutôt que dans des fichiers est architectural : le schéma, les transactions et le déploiement en dépendent. Choisir entre une boucle et une expression fonctionnelle dans une méthode ne l'est pas : le changement reste local."
+            }
+          ]
+        },
+        {
+          "id": "attributs-qualite",
+          "titre": "Attributs de qualité",
+          "resume": "L'architecture est largement déterminée par les exigences non fonctionnelles. Chaque attribut visé pousse la structure dans une direction, et les directions se contredisent souvent.",
+          "points": [
+            "Performance : temps de réponse, débit, consommation de ressources.",
+            "Disponibilité : tolérance aux pannes, redondance, reprise après incident.",
+            "Sécurité : authentification, autorisation, confidentialité des échanges.",
+            "Évolutivité : coût d'ajout d'une fonctionnalité, isolation des changements.",
+            "Testabilité : capacité à exercer une partie du système isolément.",
+            "Observabilité : journaux, métriques, traces permettant de comprendre l'exécution."
+          ],
+          "enfants": [
+            {
+              "id": "scenario-qualite",
+              "type": "texte",
+              "titre": "Formuler un attribut en scénario",
+              "corps": "Un attribut de qualité formulé en adjectif ne se vérifie pas. On le rend testable en scénario : « lors d'une pointe de 500 requêtes par seconde, 95 % des consultations de catalogue répondent en moins de 300 ms ». Ce format se retrouve dans les méthodes d'évaluation d'architecture comme ATAM."
+            },
+            {
+              "id": "iso25010",
+              "type": "lien",
+              "titre": "ISO/IEC 25010, modèle de qualité du produit logiciel",
+              "corps": "Le référentiel qui normalise le vocabulaire des attributs de qualité : pertinence fonctionnelle, performance, compatibilité, utilisabilité, fiabilité, sécurité, maintenabilité, portabilité.",
+              "url": "https://iso25000.com/index.php/en/iso-25000-standards/iso-25010",
+              "source": "iso25000.com"
+            }
+          ]
+        },
+        {
+          "id": "compromis-architecturaux",
+          "titre": "Compromis",
+          "resume": "Il n'existe pas d'architecture universellement meilleure. Toute décision favorise certains attributs au détriment d'autres, et le travail consiste à rendre ces échanges explicites.",
+          "enfants": [
+            {
+              "id": "compromis-exemple",
+              "type": "comparaison",
+              "titre": "Découper un système en services",
+              "pour": [
+                "Déploiement et mise à l'échelle indépendants",
+                "Équipes autonomes sur des périmètres distincts",
+                "Panne d'un service isolable du reste"
+              ],
+              "contre": [
+                "Latence et pannes réseau entre les appels",
+                "Cohérence des données plus difficile à garantir",
+                "Outillage d'exploitation nettement plus lourd"
+              ]
+            },
+            {
+              "id": "dette-architecturale",
+              "type": "texte",
+              "titre": "Dette architecturale",
+              "corps": "Comme la dette technique au niveau du code, mais à l'échelle de la structure : un couplage laissé en place, une frontière mal posée, une dépendance circulaire entre modules. Son intérêt se paie à chaque fonctionnalité ajoutée, et son remboursement demande souvent une migration plutôt qu'une simple réécriture locale."
+            }
+          ]
+        },
+        {
+          "id": "role-architecte",
+          "titre": "Qui décide",
+          "resume": "L'architecture peut être portée par un rôle dédié, par un groupe d'experts techniques, ou émerger des décisions de l'équipe. Dans tous les cas, elle gagne à être discutée explicitement plutôt que subie.",
+          "points": [
+            "Architecture prescrite : décidée en amont, documentée, imposée aux équipes.",
+            "Architecture émergente : construite incrément par incrément, courante en contexte agile.",
+            "En pratique, la plupart des projets combinent une ossature décidée tôt et des raffinements continus."
+          ]
+        }
+      ],
+      "accent": "#C3441D"
+    },
+    {
+      "id": "modele-c4",
+      "titre": "Le modèle C4",
+      "resume": "Une façon de décrire une architecture par niveaux de zoom successifs, proposée par Simon Brown. Quatre diagrammes emboîtés, du plus large au plus fin, chacun destiné à un public différent.",
+      "etiquettes": [
+        "notation",
+        "documentation",
+        "zoom"
+      ],
+      "facettes": [
+        {
+          "id": "c4-niveau-1",
+          "titre": "Niveau 1 — Contexte du système",
+          "resume": "Le système comme une seule boîte, entourée de ses utilisateurs et des systèmes externes avec lesquels il échange. Aucune technologie n'apparaît.",
+          "points": [
+            "Public : tout le monde, y compris non technique.",
+            "Répond à : à quoi sert ce système et avec quoi parle-t-il?",
+            "Éléments : personnes (acteurs), le système, les systèmes externes."
+          ],
+          "enfants": [
+            {
+              "id": "c4-contexte-exemple",
+              "type": "schema",
+              "titre": "Contexte d'une plateforme de réservation",
+              "corps": "Le système central, deux types d'utilisateurs, deux systèmes externes.",
+              "langue": "Mermaid (graph)",
+              "extrait": "graph LR\n  M[Membre] --> S[Plateforme de réservation]\n  A[Personnel] --> S\n  S --> P[Passerelle de paiement]\n  S --> C[Service de courriel]"
+            }
+          ]
+        },
+        {
+          "id": "c4-niveau-2",
+          "titre": "Niveau 2 — Conteneurs",
+          "resume": "On ouvre la boîte : les unités déployables et exécutables du système. Une application web, une API, une base de données, un travail planifié, une application mobile.",
+          "points": [
+            "Un conteneur au sens C4 est une unité qui s'exécute, pas nécessairement un conteneur Docker.",
+            "Chaque conteneur porte sa technologie et son mode de communication.",
+            "Public : développeurs, personnes chargées de l'exploitation."
+          ],
+          "enfants": [
+            {
+              "id": "c4-conteneurs-exemple",
+              "type": "schema",
+              "titre": "Conteneurs de la même plateforme",
+              "langue": "Mermaid (graph)",
+              "extrait": "graph TD\n  W[Application web<br/>React] -->|JSON/HTTPS| A[API<br/>Spring Boot]\n  M[Application mobile] -->|JSON/HTTPS| A\n  A -->|SQL| D[(Base de données<br/>PostgreSQL)]\n  A --> Q[Travail planifié<br/>rappels]"
+            },
+            {
+              "id": "c4-conteneur-confusion",
+              "type": "texte",
+              "titre": "Piège de vocabulaire",
+              "corps": "Le mot conteneur est antérieur à la popularité de Docker dans le modèle C4 et ne désigne pas la même chose. Une base de données PostgreSQL est un conteneur C4 qu'elle tourne dans Docker, sur une machine virtuelle ou en service infonuagique."
+            }
+          ]
+        },
+        {
+          "id": "c4-niveau-3",
+          "titre": "Niveau 3 — Composants",
+          "resume": "On ouvre un conteneur : les regroupements logiques de code qui le composent, leurs responsabilités et leurs dépendances.",
+          "points": [
+            "Un composant est un ensemble cohérent de code derrière une interface, pas un fichier.",
+            "On ne dessine ce niveau que pour les conteneurs qui le méritent.",
+            "Public : développeurs travaillant dans ce conteneur."
+          ]
+        },
+        {
+          "id": "c4-niveau-4",
+          "titre": "Niveau 4 — Code",
+          "resume": "Le détail interne d'un composant, typiquement sous forme de diagramme de classes UML. Ce niveau est optionnel et souvent mieux servi par la génération automatique depuis le code.",
+          "points": [
+            "Rarement maintenu à la main : il se périme au premier refactoring.",
+            "À réserver aux parties dont la structure interne est réellement subtile."
+          ]
+        },
+        {
+          "id": "c4-diagrammes-complementaires",
+          "titre": "Diagrammes complémentaires",
+          "resume": "Au-delà des quatre niveaux, le modèle prévoit des vues supplémentaires : diagramme dynamique pour un scénario d'exécution, diagramme de déploiement pour la correspondance entre conteneurs et infrastructure, paysage de systèmes pour l'organisation entière.",
+          "enfants": [
+            {
+              "id": "fig-c4-zoom",
+              "type": "figure",
+              "titre": "Les quatre niveaux emboîtés",
+              "illustration": "c4-zoom",
+              "corps": "Chaque niveau ouvre un élément du précédent. On descend aussi bas que le besoin de communication l'exige, rarement jusqu'au quatrième.",
+              "legende": "Contexte, conteneurs, composants, code : quatre portées, quatre publics."
+            },
+            {
+              "id": "c4-site",
+              "type": "lien",
+              "titre": "Site officiel du modèle C4",
+              "corps": "La référence complète, avec la notation, les exemples et les recommandations sur ce qu'il faut faire figurer à chaque niveau.",
+              "url": "https://c4model.com/",
+              "source": "c4model.com"
+            },
+            {
+              "id": "c4-video-brown",
+              "type": "video",
+              "titre": "Visualising software architecture with the C4 model",
+              "corps": "Simon Brown, créateur du modèle, explique pourquoi la plupart des diagrammes d'architecture sont illisibles et comment les niveaux de zoom y remédient.",
+              "youtube": "x2-rSnhpw0g",
+              "source": "Agile on the Beach 2019",
+              "duree": "≈ 50 min"
+            }
+          ]
+        },
+        {
+          "id": "c4-outillage",
+          "titre": "Outillage",
+          "resume": "Les diagrammes C4 peuvent être dessinés à la main, mais ils vieillissent mieux quand ils sont écrits en texte et versionnés avec le code.",
+          "enfants": [
+            {
+              "id": "structurizr",
+              "type": "lien",
+              "titre": "Structurizr",
+              "corps": "Outillage « modèle comme code » du même auteur : on décrit le modèle une fois, et les différentes vues en sont dérivées.",
+              "url": "https://simonbrown.je/",
+              "source": "simonbrown.je"
+            },
+            {
+              "id": "c4-mermaid",
+              "type": "code",
+              "titre": "C4 en Mermaid",
+              "corps": "Mermaid propose une syntaxe dédiée, utilisable directement dans un fichier Markdown de dépôt.",
+              "langue": "mermaid",
+              "extrait": "C4Context\n  title Contexte — Plateforme de réservation\n  Person(membre, \"Membre\", \"Réserve des séances\")\n  System(plateforme, \"Plateforme\", \"Gère les réservations\")\n  System_Ext(paiement, \"Passerelle de paiement\")\n  Rel(membre, plateforme, \"Utilise\", \"HTTPS\")\n  Rel(plateforme, paiement, \"Débite\", \"API REST\")"
+            }
+          ]
+        }
+      ],
+      "accent": "#CC6719"
+    },
+    {
+      "id": "styles-architecturaux",
+      "titre": "Styles architecturaux",
+      "resume": "Des façons récurrentes d'organiser un système, chacune avec ses usages typiques et ses compromis. Un système réel en combine souvent plusieurs à des échelles différentes.",
+      "etiquettes": [
+        "patrons",
+        "structure",
+        "compromis"
+      ],
+      "facettes": [
+        {
+          "id": "style-couches",
+          "titre": "En couches",
+          "resume": "Le système est organisé en couches hiérarchiques : chaque couche fournit un service à celle du dessus et consomme celle du dessous. L'organisation en trois couches, présentation, logique métier, données, en est la forme la plus répandue.",
+          "enfants": [
+            {
+              "id": "fig-couches",
+              "type": "figure",
+              "titre": "Trois couches, un sens d'appel",
+              "illustration": "couches",
+              "legende": "La règle de dépendance est unidirectionnelle : ce qui la contourne signale une frontière mal posée."
+            },
+            {
+              "id": "couches-compromis",
+              "type": "comparaison",
+              "titre": "Ce que ce style donne et coûte",
+              "pour": [
+                "Structure familière, facile à expliquer et à intégrer",
+                "Substitution possible d'une couche entière",
+                "Séparation nette des responsabilités techniques"
+              ],
+              "contre": [
+                "Une fonctionnalité traverse toutes les couches, ce qui multiplie les points de modification",
+                "Couches parfois traversées sans rien apporter",
+                "Peut masquer un couplage fort par le modèle de données partagé"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "style-client-serveur",
+          "titre": "Client-serveur",
+          "resume": "Le système se divise entre des serveurs qui fournissent des services et des clients qui les consomment. Le client initie l'échange, le serveur répond ; c'est le socle du web et de la plupart des applications d'entreprise.",
+          "points": [
+            "Le serveur centralise les données et les règles partagées.",
+            "Plusieurs types de clients peuvent coexister sur le même serveur.",
+            "La disponibilité du serveur devient une préoccupation de premier plan."
+          ]
+        },
+        {
+          "id": "style-mvc",
+          "titre": "MVC et ses variantes",
+          "resume": "Modèle-Vue-Contrôleur sépare l'état de l'application (modèle), son affichage (vue) et le traitement des requêtes (contrôleur). Les variantes MVP et MVVM redistribuent les mêmes responsabilités autrement.",
+          "points": [
+            "Modèle : encapsule l'état et les règles, répond aux demandes.",
+            "Vue : produit le rendu à partir du modèle.",
+            "Contrôleur : reçoit les actions, décide, met à jour le modèle.",
+            "MVVM, courant côté interfaces réactives, remplace le contrôleur par un modèle de vue observable."
+          ]
+        },
+        {
+          "id": "style-pipes",
+          "titre": "Pipes et filtres",
+          "resume": "Des filtres indépendants transforment un flux de données et communiquent par des tuyaux. Chaque filtre ignore ce qui l'entoure, ce qui rend la chaîne recomposable.",
+          "points": [
+            "Usages : compilateurs, traitement d'images, chaînes de traitement de données, pipelines shell.",
+            "Les filtres peuvent s'exécuter en parallèle, avec une synchronisation des flux au besoin.",
+            "Peu adapté aux interactions qui demandent un état partagé entre étapes."
+          ],
+          "enfants": [
+            {
+              "id": "fig-pipes",
+              "type": "figure",
+              "titre": "Une chaîne de filtres",
+              "illustration": "pipes-filtres",
+              "legende": "La sortie de chaque filtre est l'entrée du suivant, ce qui permet de recomposer la chaîne."
+            }
+          ]
+        },
+        {
+          "id": "style-pair-a-pair",
+          "titre": "Pair-à-pair",
+          "resume": "Chaque nœud joue à la fois le rôle de client et de serveur. Il n'y a pas de point central obligatoire, ce qui favorise la tolérance aux pannes et une mise à l'échelle qui croît avec le nombre de pairs.",
+          "points": [
+            "Usages : partage de fichiers, chaînes de blocs, synchronisation collaborative.",
+            "Difficultés : découverte des pairs, cohérence, confiance entre nœuds."
+          ]
+        },
+        {
+          "id": "style-microservices",
+          "titre": "Microservices",
+          "resume": "Une collection de services autonomes, chacun restreint à une capacité métier, déployables indépendamment et accessibles par des API. Un style puissant, mais dont le coût d'exploitation est souvent sous-estimé.",
+          "enfants": [
+            {
+              "id": "fig-decoupages",
+              "type": "figure",
+              "titre": "Trois façons de tracer les frontières",
+              "illustration": "trois-decoupages",
+              "corps": "Le découpage logique peut être le même dans les trois cas. Ce qui change, c'est ce qui se déploie ensemble.",
+              "legende": "Passer du monolithe modulaire aux services déplace la frontière, pas la conception."
+            },
+            {
+              "id": "microservices-compromis",
+              "type": "comparaison",
+              "titre": "Avant de découper",
+              "pour": [
+                "Chaque service évolue et se déploie à son rythme",
+                "Choix technologiques différenciés par service",
+                "Mise à l'échelle ciblée sur les services chargés"
+              ],
+              "contre": [
+                "Transactions réparties et cohérence éventuelle",
+                "Débogage à travers plusieurs services",
+                "Exige CI/CD, observabilité et automatisation matures"
+              ]
+            },
+            {
+              "id": "monolithe-modulaire",
+              "type": "texte",
+              "titre": "L'option intermédiaire : le monolithe modulaire",
+              "corps": "Un seul déployable, mais des modules aux frontières explicites et sans dépendances croisées. On obtient une bonne part des bénéfices de modularité sans le coût réseau et opérationnel, et le découpage ultérieur en services reste possible si le besoin apparaît."
+            }
+          ]
+        },
+        {
+          "id": "style-hexagonale",
+          "titre": "Hexagonale (ports et adaptateurs)",
+          "resume": "Proposée par Alistair Cockburn en 2005, elle isole la logique métier au centre. Le cœur définit des ports, c'est-à-dire des interfaces exprimées dans son propre vocabulaire, et des adaptateurs relient ces ports au monde extérieur.",
+          "points": [
+            "Le cœur ne dépend d'aucune technologie externe : ni base de données, ni cadre web.",
+            "Les adaptateurs entrants pilotent le cœur (interface web, tests, scripts).",
+            "Les adaptateurs sortants sont pilotés par le cœur (base de données, API tierces).",
+            "Conséquence directe : le métier se teste sans infrastructure, avec des adaptateurs en mémoire."
+          ],
+          "enfants": [
+            {
+              "id": "fig-hexagonale",
+              "type": "figure",
+              "titre": "Ports et adaptateurs autour du cœur",
+              "illustration": "hexagonale",
+              "corps": "Le cœur déclare ses ports ; les adaptateurs, entrants à gauche et sortants à droite, sont les seuls à connaître une technologie concrète.",
+              "legende": "Remplacer une base de données revient à écrire un autre adaptateur, sans toucher au cœur."
+            },
+            {
+              "id": "hexagonale-aws",
+              "type": "lien",
+              "titre": "Le motif hexagonal expliqué",
+              "corps": "Présentation synthétique du motif, de son intention et de sa mise en œuvre, en français.",
+              "url": "https://docs.aws.amazon.com/fr_fr/prescriptive-guidance/latest/cloud-design-patterns/hexagonal-architecture.html",
+              "source": "AWS Prescriptive Guidance"
+            },
+            {
+              "id": "hexagonale-code",
+              "type": "code",
+              "titre": "Un port et deux adaptateurs",
+              "corps": "Le cœur déclare ce dont il a besoin ; l'infrastructure fournit les implémentations.",
+              "langue": "java",
+              "extrait": "// Port, défini dans le cœur métier\npublic interface ReservationRepository {\n    Optional<Reservation> findById(ReservationId id);\n    void save(Reservation reservation);\n}\n\n// Adaptateur de production\nclass PostgresReservationRepository implements ReservationRepository { /* ... */ }\n\n// Adaptateur de test, sans base de données\nclass InMemoryReservationRepository implements ReservationRepository { /* ... */ }"
+            }
+          ]
+        },
+        {
+          "id": "style-evenementiel",
+          "titre": "Orientée événements",
+          "resume": "Les composants ne s'appellent pas directement : ils publient des événements et s'abonnent à ceux qui les concernent, via un courtier de messages. Le producteur ignore qui consomme.",
+          "points": [
+            "Couplage temporel faible : le consommateur peut être indisponible au moment de l'émission.",
+            "Ajout d'un nouveau consommateur sans toucher au producteur.",
+            "En contrepartie, le flux global devient difficile à suivre et l'ordre des événements demande de l'attention.",
+            "Variante : le journal d'événements comme source de vérité (event sourcing)."
+          ],
+          "enfants": [
+            {
+              "id": "fig-evenementiel",
+              "type": "figure",
+              "titre": "Publication et abonnement",
+              "illustration": "evenementiel",
+              "corps": "Ajouter un quatrième consommateur ne demande aucune modification du producteur : il s'abonne au courtier.",
+              "legende": "Le couplage porte sur le format des événements, pas sur les composants eux-mêmes."
+            }
+          ]
+        }
+      ],
+      "accent": "#CC8014"
+    },
+    {
+      "id": "api-interfaces",
+      "titre": "API et interfaces",
+      "resume": "Les points de contact entre les parties d'un système et avec l'extérieur. Une interface est un contrat : ce qu'on peut demander, sous quelle forme, et ce qu'on obtient en retour.",
+      "etiquettes": [
+        "contrats",
+        "REST",
+        "intégration"
+      ],
+      "facettes": [
+        {
+          "id": "contrats-interface",
+          "titre": "Le contrat d'interface",
+          "resume": "Ce que l'appelant peut supposer et ce que l'implémentation s'engage à fournir : signatures, préconditions, postconditions, erreurs possibles, garanties de performance.",
+          "points": [
+            "Un contrat explicite permet de développer les deux côtés en parallèle.",
+            "Il rend possible le remplacement d'une implémentation par une autre.",
+            "Il constitue la base des tests de contrat entre équipes."
+          ]
+        },
+        {
+          "id": "api-rest",
+          "titre": "REST",
+          "resume": "Un style d'API où l'on manipule des ressources identifiées par des URL, avec les verbes HTTP et des représentations, le plus souvent en JSON. Dominant pour les API web publiques.",
+          "points": [
+            "Ressources au pluriel, verbes portés par HTTP : GET, POST, PUT, PATCH, DELETE.",
+            "Codes de statut significatifs : 200, 201, 400, 401, 404, 409, 500.",
+            "Idempotence : GET, PUT et DELETE peuvent être rejoués sans effet supplémentaire.",
+            "Sans état : chaque requête porte l'information nécessaire à son traitement."
+          ],
+          "enfants": [
+            {
+              "id": "fig-rest",
+              "type": "figure",
+              "titre": "Un aller-retour HTTP",
+              "illustration": "rest-echange",
+              "legende": "Le verbe porte l'intention, l'URL désigne la ressource, le code de statut porte le résultat."
+            },
+            {
+              "id": "rest-exemple",
+              "type": "code",
+              "titre": "Quelques routes d'une API de réservation",
+              "langue": "http",
+              "extrait": "GET    /api/seances?date=2026-10-02   200 [ ... ]\nPOST   /api/reservations              201 { \"id\": 4812 }\nGET    /api/reservations/4812         200 { ... }\nDELETE /api/reservations/4812         204\nPOST   /api/reservations              409 { \"erreur\": \"seance_complete\" }"
+            }
+          ]
+        },
+        {
+          "id": "api-alternatives",
+          "titre": "Alternatives à REST",
+          "resume": "REST n'est pas le seul style. GraphQL et les appels de procédure à distance répondent à d'autres besoins, et le choix se fait selon la nature des échanges.",
+          "points": [
+            "GraphQL : le client décrit précisément les données voulues en une requête, ce qui évite les allers-retours et les réponses surdimensionnées, au prix d'un serveur plus complexe.",
+            "gRPC : appels de procédure à distance sur HTTP/2, contrats en Protocol Buffers, adapté aux échanges internes à fort volume.",
+            "Messages asynchrones : lorsque l'appelant n'attend pas de réponse immédiate.",
+            "Webhooks : le serveur rappelle le client lorsqu'un événement survient."
+          ]
+        },
+        {
+          "id": "formats-echange",
+          "titre": "Formats d'échange",
+          "resume": "La représentation concrète des données qui circulent : lisible par une personne ou compacte pour la machine, autodescriptive ou dépendante d'un schéma.",
+          "points": [
+            "JSON : lisible, universel côté web, sans typage fort natif.",
+            "XML : verbeux mais outillé (schémas, transformations), encore courant en entreprise.",
+            "Protocol Buffers, Avro : binaires, compacts, avec schéma versionné.",
+            "CSV : simple pour les échanges tabulaires, ambigu dès que les données se compliquent."
+          ]
+        },
+        {
+          "id": "versionnement-api",
+          "titre": "Faire évoluer une API",
+          "resume": "Une API publiée a des clients qu'on ne contrôle pas. La question n'est pas d'éviter le changement, mais de le rendre absorbable.",
+          "points": [
+            "Changement compatible : ajouter un champ optionnel, une route, une valeur d'énumération tolérée.",
+            "Changement cassant : retirer ou renommer un champ, changer un type, durcir une validation.",
+            "Stratégies : version dans l'URL (/v2/), en en-tête, ou évolution continue sans rupture.",
+            "Dépréciation annoncée : signaler, laisser une période de transition, puis retirer."
+          ],
+          "enfants": [
+            {
+              "id": "semver",
+              "type": "lien",
+              "titre": "Semantic Versioning",
+              "corps": "La convention MAJEUR.MINEUR.CORRECTIF : l'incrément majeur signale précisément une rupture de compatibilité.",
+              "url": "https://semver.org/lang/fr/",
+              "source": "semver.org"
+            }
+          ]
+        },
+        {
+          "id": "documentation-api",
+          "titre": "Documenter une API",
+          "resume": "Une description formelle de l'API sert à la fois de documentation, de base de génération de clients et de support aux tests de contrat.",
+          "enfants": [
+            {
+              "id": "openapi",
+              "type": "lien",
+              "titre": "Spécification OpenAPI",
+              "corps": "Le format standard pour décrire une API HTTP : routes, paramètres, schémas de réponse, erreurs. De nombreux outils génèrent à partir de là une documentation navigable et des clients dans plusieurs langages.",
+              "url": "https://www.openapis.org/",
+              "source": "openapis.org"
+            }
+          ]
+        }
+      ],
+      "accent": "#B88C14"
+    },
+    {
+      "id": "vues-deploiement",
+      "titre": "Vue de déploiement",
+      "resume": "La correspondance entre les éléments logiciels et l'infrastructure qui les exécute : quelles machines, quels processus, quels réseaux, et comment le tout reste disponible.",
+      "etiquettes": [
+        "exécution",
+        "infrastructure"
+      ],
+      "facettes": [
+        {
+          "id": "diagramme-deploiement",
+          "titre": "Diagramme de déploiement UML",
+          "resume": "Représente les nœuds d'exécution (machines physiques ou virtuelles, environnements d'exécution) et les artefacts qui y sont déployés, ainsi que les liens de communication entre nœuds.",
+          "points": [
+            "Nœud : une ressource de calcul, matérielle ou virtualisée.",
+            "Artefact : un élément concret déployé, par exemple une archive ou une image.",
+            "Utile dès que la topologie n'est pas évidente : plusieurs serveurs, réplication, zones réseau distinctes."
+          ]
+        },
+        {
+          "id": "environnements",
+          "titre": "Environnements",
+          "resume": "Le même logiciel s'exécute dans plusieurs environnements, dont la ressemblance conditionne la valeur des tests qu'on y fait.",
+          "points": [
+            "Développement : poste de travail, données factices, cycle rapide.",
+            "Intégration ou préproduction : configuration proche de la production, données anonymisées.",
+            "Production : le véritable environnement, avec les vraies données et les vrais usagers.",
+            "Plus l'écart entre préproduction et production est grand, moins les tests y sont concluants."
+          ]
+        },
+        {
+          "id": "conteneurisation-orchestration",
+          "titre": "Conteneurisation et orchestration",
+          "resume": "Un conteneur empaquette l'application avec ses dépendances et s'exécute de façon identique partout. Un orchestrateur pilote un ensemble de conteneurs sur un parc de machines.",
+          "points": [
+            "Conteneur : isolation par les fonctionnalités du système hôte, plus léger qu'une machine virtuelle.",
+            "Image : le gabarit versionné dont on instancie les conteneurs.",
+            "Orchestration : placement, redémarrage, mise à l'échelle, découverte de services.",
+            "Une machine virtuelle reste préférable lorsqu'on a besoin d'un autre noyau ou d'une isolation plus forte."
+          ]
+        },
+        {
+          "id": "disponibilite-echelle",
+          "titre": "Disponibilité et mise à l'échelle",
+          "resume": "Deux préoccupations distinctes que l'architecture doit trancher tôt, car elles conditionnent la façon dont l'état est géré.",
+          "points": [
+            "Mise à l'échelle verticale : une machine plus puissante, simple mais bornée.",
+            "Mise à l'échelle horizontale : plusieurs instances derrière un répartiteur de charge, ce qui suppose des instances sans état local.",
+            "Redondance et bascule : plusieurs instances, plusieurs zones, reprise automatique.",
+            "Le point de contention est souvent la base de données, pas le code applicatif."
+          ],
+          "enfants": [
+            {
+              "id": "fig-echelle",
+              "type": "figure",
+              "titre": "Mise à l'échelle horizontale",
+              "illustration": "mise-echelle",
+              "corps": "Trois instances identiques derrière un répartiteur : cela suppose qu'aucune ne conserve d'état local entre deux requêtes.",
+              "legende": "La base de données partagée devient alors le point de contention à surveiller."
+            }
+          ]
+        }
+      ],
+      "accent": "#C22E37"
+    },
+    {
+      "id": "documenter-architecture",
+      "titre": "Documenter l'architecture",
+      "resume": "Une architecture non documentée se reconstruit dans la tête de chaque nouvelle personne, avec des interprétations divergentes. La question pratique est de documenter juste assez, dans un format qui ne se périme pas trop vite.",
+      "etiquettes": [
+        "ADR",
+        "vues",
+        "diagrammes comme code"
+      ],
+      "facettes": [
+        {
+          "id": "vues-multiples",
+          "titre": "Documenter par vues",
+          "resume": "Aucun diagramme unique ne capture une architecture. On produit plusieurs vues, chacune répondant à une préoccupation et destinée à un public.",
+          "points": [
+            "Le modèle 4+1 de Kruchten : vues logique, processus, développement, physique, articulées par des scénarios.",
+            "Le modèle C4 : la même idée par niveaux de zoom, avec une notation plus légère.",
+            "Le gabarit arc42 : une table des matières type pour un document d'architecture.",
+            "Dans tous les cas, une légende explicite vaut mieux qu'une convention implicite."
+          ]
+        },
+        {
+          "id": "adr",
+          "titre": "Décisions consignées (ADR)",
+          "resume": "Un enregistrement de décision d'architecture est une note courte, versionnée avec le code, qui capture une décision et surtout son pourquoi. Le format usuel tient en une page.",
+          "enfants": [
+            {
+              "id": "adr-gabarit",
+              "type": "code",
+              "titre": "Gabarit d'ADR",
+              "corps": "Un fichier par décision, numéroté, dans un dossier docs/adr du dépôt.",
+              "langue": "markdown",
+              "extrait": "# ADR 007 — Stockage des pièces jointes hors base de données\n\n## Statut\nAccepté, 2026-09-04. Remplace l'ADR 003.\n\n## Contexte\nLes pièces jointes atteignent 40 Mo et alourdissent les sauvegardes.\n\n## Décision\nStocker les fichiers dans un service objet et ne conserver en base\nque les métadonnées et l'URL.\n\n## Conséquences\n+ Sauvegardes plus légères, restauration plus rapide.\n- Cohérence à gérer : un fichier peut exister sans sa ligne."
+            },
+            {
+              "id": "adr-pourquoi",
+              "type": "texte",
+              "titre": "Pourquoi le pourquoi",
+              "corps": "Le code montre la décision prise ; il ne montre jamais les options écartées ni les contraintes du moment. Sans ce contexte, une équipe ultérieure défait une décision pour une raison déjà examinée et rejetée, ou la conserve alors que sa justification a disparu."
+            }
+          ]
+        },
+        {
+          "id": "diagrammes-comme-code",
+          "titre": "Diagrammes comme code",
+          "resume": "Écrire les diagrammes en texte plutôt que dans un outil graphique : ils se versionnent, se comparent en révision et se régénèrent automatiquement.",
+          "enfants": [
+            {
+              "id": "mermaid",
+              "type": "lien",
+              "titre": "Mermaid",
+              "corps": "Syntaxe textuelle pour diagrammes de séquence, de classes, d'états, de flux et C4, rendue directement dans la plupart des forges Git.",
+              "url": "https://mermaid.js.org/",
+              "source": "mermaid.js.org"
+            },
+            {
+              "id": "plantuml",
+              "type": "lien",
+              "titre": "PlantUML",
+              "corps": "Plus ancien et plus complet côté UML, avec une extension dédiée au modèle C4.",
+              "url": "https://plantuml.com/fr/",
+              "source": "plantuml.com"
+            }
+          ]
+        },
+        {
+          "id": "documentation-vivante",
+          "titre": "Garder la documentation vivante",
+          "resume": "Une documentation d'architecture se dégrade si rien ne la relie au travail quotidien. Quelques habitudes limitent la dérive.",
+          "points": [
+            "La placer dans le dépôt, pas dans un espace séparé que personne n'ouvre.",
+            "La modifier dans la même pull request que le changement qu'elle décrit.",
+            "Préférer peu de diagrammes maintenus à beaucoup de diagrammes périmés.",
+            "Dater les vues et assumer qu'un schéma non daté sera lu comme actuel."
+          ]
+        }
+      ],
+      "accent": "#993229"
+    }
+  ]
+}
