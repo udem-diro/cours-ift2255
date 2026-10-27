@@ -1,0 +1,1028 @@
+---
+/**
+ * Énoncé du projet de session, phase 2 (Conception). Le contenu vit dans src/data/phase2.ts.
+ */
+import Layout from "../../layouts/Layout.astro";
+import {
+  config, fenetres, acquis, termes, artefacts, etapes, ponderations,
+  contenuRapport, contenuReadme, tracabilite, criteres, horsSujet, pistes,
+  apprentissages, exempleCritere, gabaritCasTest, gabaritMatrice, modalites,
+} from "../../data/phase2";
+
+// Espaces insécables du français (avant ? ! : ; » et après «)
+const fr = (texte: string) => texte.replace(/ ([?!:;»])/g, " $1").replace(/« /g, "« ");
+
+const meta = [
+  // { terme: "Équipes", valeur: config.equipe },
+  // { terme: "Durée", valeur: config.duree },
+  { terme: "Remise", valeur: config.remise },
+];
+
+const listeModalites = [
+  { terme: "Dépôt du rapport", valeur: modalites.depot },
+  { terme: "Étiquette de la release", valeur: modalites.etiquette, code: true },
+  { terme: "Longueur du rapport", valeur: modalites.longueur },
+  { terme: "Format des diagrammes", valeur: modalites.formatsDiagrammes }
+];
+---
+
+<Layout
+  title={`${config.phase} : ${config.phaseNom}, ${config.cours}`}
+  description="Énoncé de la phase 2 du projet de session IFT2255 : composants, classes, tests, sources de données et sauvegarde."
+>
+  <header class="entete">
+    <div class="contenu">
+      <p class="surtitre">{config.cours} · Projet de session · {config.phase}</p>
+      <h1>{config.phaseNom}</h1>
+      <p class="chapeau-entete">
+        La phase 1 a établi ce que votre plateforme doit faire. La phase 2 établit comment elle sera
+        construite&nbsp;: sa structure interne, son modèle de données, la façon dont elle exploite des
+        sources qu'elle ne contrôle pas, ce qu'elle conserve, et comment on vérifiera qu'elle fait ce
+        qu'on attend d'elle.
+      </p>
+    </div>
+  </header>
+  <div class="entete-bande">
+    <dl class="contenu">
+      {meta.map((m) => (
+        <div><dt>{m.terme}</dt><dd>{m.valeur ?? <span class="a-confirmer">à confirmer</span>}</dd></div>
+      ))}
+    </dl>
+  </div>
+
+  <main>
+    <section class="contenu" aria-labelledby="titre-objectif">
+      <h2 id="titre-objectif">Objectif</h2>
+      <ul class="apprentissages">{apprentissages.map((a) => <li>{fr(a)}</li>)}</ul>
+    </section>
+
+    <section class="contenu sans-haut" aria-labelledby="titre-acquis">
+      <h2 id="titre-acquis">Ce qui est acquis</h2>
+      <p class="chapeau">
+        Vos livrables de la <a href="/projet/phase-1/">phase 1</a> sont le point de départ, 
+        et aussi une contrainte pour votre conception&nbsp;: ils définissent le cadre de la 
+        solution que vous structurez dans cette phase.
+      </p>
+      <div class="acquis-grille">
+        <ul class="acquis">
+          {acquis.map((a) => (
+            <li>
+              <span class={`pastille ${a.code === "Exigences" ? "pastille-exigence" : "pastille-a"}`}>{a.code}</span>
+              <span>{fr(a.detail)}</span>
+            </li>
+          ))}
+        </ul>
+        <aside class="annotation">
+          <h3>Une révision des artéfacts de la phase 1 est attendue</h3>
+          <p>
+            En plus du retour reçu sur votre remise pour la phase 1, concevoir révèle souvent des erreurs dans l'analyse ou même de nouvelles exigences.
+            <br>
+            Vous pouvez donc réviser vos artefacts de phase 1 dans cette itération.
+          </p>
+        
+          <p class="annotation-cle">
+            Signalez chaque révision dans le rapport, en mentionnant la raison qui la motive.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- <section class="bande" aria-labelledby="titre-termes">
+      <div class="contenu">
+        <h2 id="titre-termes">Quelques termes</h2>
+        <dl class="termes">
+          {termes.map((t) => (
+            <div>
+              <dt>{t.terme}</dt>
+              <dd>{fr(t.def)}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section> -->
+
+    <section class="bande" aria-labelledby="titre-artefacts">
+      <div class="contenu">
+        <h2 id="titre-artefacts">Artefacts de conception exigés</h2>
+        <p class="chapeau">
+          Dans cette phase, vous produisez <strong>quatre artefacts de conception pour votre système</strong>. <br>
+          <strong>Rappel:</strong> Le prototype de référence peut être utilisé comme source d'inspiration, mais n'est pas la cible attendue. 
+          <!-- Les fourchettes indiquées sont des ordres de grandeur, pas des quotas&nbsp;: 
+          le plancher garantit une conception complète, le plafond force la priorisation. -->
+        </p>
+        <nav class="sommaire" aria-label="Artefacts">
+          {artefacts.map((a) => (
+            <a class="sommaire__lien" href={`#${a.code.toLowerCase()}`}>
+              <span class="sommaire__lien-code">{a.code}</span> 
+              <span class="sommaire__lien-titre">{a.titre}</span>
+            </a>
+          ))}
+        </nav>
+        <div class="artefacts">
+          {artefacts.map((a) => (
+            <article class="artefact" id={a.code.toLowerCase()}>
+              <div class="artefact-tete">
+                <div>
+                  <h3>
+                    <strong>{a.code}</strong>
+                    &bull;
+                    <span>{a.titre}</span>
+                  </h3>
+                  <p class="artefact-quoi">{fr(a.quoi)}</p>
+                </div>
+              </div>
+              {a.exigences.length > 0 && (
+                <ul>
+                  {a.exigences.map((e) => <li set:html={fr(e)}></li>)}
+                </ul>
+              )}
+              {a.parties?.map((partie, k) => (
+                <div class="partie">
+                  <p class="partie-titre">Partie {k + 1}. {partie.titre}</p>
+                  <ul>{partie.exigences.map((e) => <li>{fr(e)}</li>)}</ul>
+                </div>
+              ))}
+              {/* {a.code === "B3" && (
+                <div class="exemple">
+                  <p class="exemple-titre">Exemple&nbsp;: {fr(exempleCritere.exigence)}</p>
+                  <div class="niveaux">
+                    <div class="bas"><span>Critère vague</span><p>{fr(exempleCritere.vague)}</p></div>
+                    <div class="haut"><span>Critère vérifiable</span><p>{fr(exempleCritere.verifiable)}</p></div>
+                  </div>
+                  <p class="exemple-pourquoi">{fr(exempleCritere.pourquoi)}</p>
+                </div>
+              )} */}
+            </article>
+          ))}
+        </div>
+        <!-- <p class="note">
+          Le <a href={config.guideApi}>guide d'utilisation de l'API Planifium</a> est publié sur le site du
+          cours. Le fichier Excel des calendriers universitaires est disponible sur StudiUM.
+          Forme du relevé de notes que traite B4&nbsp;: à proposer
+        </p> -->
+      </div>
+    </section>
+
+    <!-- <section class="contenu" aria-labelledby="titre-tracabilite">
+      <div>
+        <h2 id="titre-tracabilite">Traçabilité</h2>
+        <p class="chapeau">
+          Les cinq artefacts doivent former un tout. Le rapport contient une matrice de traçabilité qui
+          établit au minimum les correspondances suivantes.
+        </p>
+        <ul class="traces">
+          {tracabilite.map((t) => (
+            <li>
+              <span class="trace-de">{t.de}</span>
+              <span class="trace-fleche" aria-label="vers">→</span>
+              <span class="trace-vers">{t.vers}</span>
+            </li>
+          ))}
+        </ul>
+        <p class="message-cle">
+          Une case vide n'est pas une faute si elle est expliquée&nbsp;; une case vide non vue en est une.
+        </p>
+
+        <h3 class="gabarits-titre">Deux gabarits pour démarrer</h3>
+        <p class="note">Les identifiants (E-04, CA-04.1, CT-07…) sont des exemples. Adaptez les colonnes et les champs à votre projet.</p>
+        <details class="gabarit">
+          <summary>Matrice de traçabilité</summary>
+          <div class="tableau-defile">
+            <table>
+              <thead><tr>{gabaritMatrice.colonnes.map((c) => <th>{c}</th>)}</tr></thead>
+              <tbody>
+                {gabaritMatrice.lignes.map((l) => (
+                  <tr>{l.map((c) => <td>{c}</td>)}</tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p class="note">{fr(gabaritMatrice.note)}</p>
+        </details>
+        <details class="gabarit">
+          <summary>Fiche de cas de test (B3)</summary>
+          <dl class="fiche">
+            {gabaritCasTest.map((g) => (
+              <div><dt>{g.champ}</dt><dd>{fr(g.exemple)}</dd></div>
+            ))}
+          </dl>
+        </details>
+              <p class="note">
+        Faire progresser le prototype n'est pas exigé à cette phase. 
+        Une équipe qui le fait peut s'en servir pour éprouver sa conception, 
+        notamment B4 et B5, et le signale dans le README.
+      </p>
+      </div>
+    </section> -->
+
+    <!-- <section class="contenu" aria-labelledby="titre-deroulement">
+      <h2 id="titre-deroulement">Déroulement</h2>
+      <p class="chapeau">
+        Comme en phase 1, les semaines se recouvrent en partie. 
+        Le découpage indique où porter l'effort principal.
+      </p>
+      <ol class="etapes">
+        {etapes.map((e) => (
+          <li>
+            <span class="numero" aria-hidden="true">{e.n}</span>
+            <span class="etape-titre">{e.nom}</span>
+            <span class="etape-quand">{e.quand}</span>
+            <p class="etape-but">{fr(e.but)}</p>
+            <ul>{e.taches.map((t) => <li>{fr(t)}</li>)}</ul>
+          </li>
+        ))}
+      </ol>
+    </section> -->
+
+    <section class="demande" aria-labelledby="titre-questions">
+      <div class="contenu">
+        <h2 id="titre-questions">Demande de clarifications et retours</h2>
+        <p class="chapeau">
+          Le quota pour cette phase&nbsp;: <strong>{config.quotaQuestions}</strong>, à poser{" "}
+          <strong>{config.fenetreQuestions}</strong>. Les questions non posées ne se reportent pas.
+        </p>
+        <p class="note regle">
+          Une équipe qui ne fait aucune demande d'ici le <u>10 novembre</u> recevra une pénalité.
+        </p>
+        <div>
+          <h3>Hors du périmètre des questions</h3>
+          <ul class="hors">{horsSujet.map((h) => <li>{fr(h)}</li>)}</ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- <section class="contenu" aria-labelledby="titre-livrables">
+      <h2 id="titre-livrables">Livrables</h2>
+      <p class="chapeau">
+        Deux livrables, remis le <strong>{config.remise}</strong>. Comme en phase 1, c'est la release
+        étiquetée à cette date qui est évaluée.
+      </p>
+      <div class="livrables">
+        {ponderations.map((l, i) => (
+          <article class="livrable">
+            <div class="livrable-tete">
+              <h3>{l.titre}</h3>
+              <span class="poids">{l.poids}&nbsp;%</span>
+            </div>
+            <p class="livrable-format">{l.format}</p>
+            <p>{fr(l.quoi)}</p>
+            <p class="livrable-rubrique">{i === 0 ? "Le rapport contient" : "Le README contient"}</p>
+            <ol>{(i === 0 ? contenuRapport : contenuReadme).map((c) => <li>{fr(c)}</li>)}</ol>
+          </article>
+        ))}
+      </div>
+      <h3 class="modalites-titre">Modalités de remise</h3>
+      <dl class="modalites">
+        {listeModalites.map((m) => (
+          <div>
+            <dt>{m.terme}</dt>
+            <dd>{m.valeur ? (m.code ? <code>{m.valeur}</code> : fr(m.valeur)) : <span class="a-confirmer">à confirmer</span>}</dd>
+          </div>
+        ))}
+      </dl>
+    </section> -->
+
+    <section class="pop" aria-labelledby="titre-criteres">
+      <div class="contenu">
+        <h2 id="titre-criteres">Critères d'évaluation</h2>
+
+        <div class="criteres">
+          {criteres.map((c) => (
+            <article class="critere">
+              <div class="critere-tete">
+                <h3>{c.titre}</h3>
+                <span class="poids">{c.poids.replace(" %", " %")}</span>
+              </div>
+              {/* <div class="niveaux">
+                <p>{fr(c.description)}</p>
+              </div> */}
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="dark" aria-labelledby="titre-ia">
+      <div class="contenu ia">
+        <h2 id="titre-ia">Sur l'usage d'assistant IA</h2>
+        <p>
+          Un assistant ou modèle IA peut être utilisé pour valider la cohérence de votre conception
+          ou vérifier le respect et le bon usage de la notation UML. 
+          Cependant, une conception ou des cas de tests<strong>purement générés ne sont pas autorisés.</strong> 
+          L'objectif est de développer votre capacité à évaluer, reconnaitre et produire une conception de qualité
+          et rester pleinement en maitrise d'un système qui gagne en complexité.
+        </p>
+        <p>Déclarez dans le rapport les outils employés et l'usage que vous en avez fait.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pied">
+    <p class="contenu">
+      <a href="/projet/phase-1/">Énoncé de la phase 1</a>
+      <a href="/guide-api/">Guide de l'API</a>
+      <a href="/">Retour à l'accueil</a>
+    </p>
+  </footer>
+</Layout>
+
+<style>
+  .contenu {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+  .ia > * {
+    max-width: 48rem;
+  }
+  section.contenu,
+  .bande > .contenu,
+  .pop > .contenu,
+  .demande > .contenu,
+  .dark > .contenu {
+    padding-top: 3.2rem;
+    padding-bottom: 3.2rem;
+  }
+  section.sans-haut {
+    padding-top: 0;
+  }
+  .bande {
+    background: var(--papier-carte);
+    border-top: 1px solid var(--ligne);
+    border-bottom: 1px solid var(--ligne);
+  }
+  .pop {
+    background: var(--orange);
+  }
+    .pop h2 {
+      color: var(--bleu-fonce);
+    }
+  .dark {
+    background: var(--bleu-fonce);
+    border-top: 1px solid var(--encre);
+    border-bottom: 1px solid var(--encre);
+    color: #fefefe;
+  }
+    .dark h2 {
+      color: #fefefe;
+    }
+
+  .demande {
+    background: var(--bleu-clair);
+  } 
+
+  h2 {
+    margin: 0 0 1rem;
+    font-size: clamp(1.5rem, 3vw, 1.9rem);
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+  }
+  p, li, dd {
+    line-height: 1.65;
+  }
+  .chapeau {
+    margin: -0.4rem 0 1.6rem;
+  }
+  .note {
+    margin: 1.4rem 0 0;
+    font-size: 0.95rem;
+    color: #5a6478;
+  }
+  .cg-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  a {
+    color: var(--bleu-profond);
+  }
+
+  /* en-tête */
+  .entete {
+    background: var(--bleu);
+    color: #fff;
+  }
+  .entete .contenu {
+    padding-top: 3.8rem; /* place pour le logo qui déborde de la barre */
+    padding-bottom: 2.4rem;
+  }
+  .surtitre {
+    margin: 0;
+    font: 600 0.95rem/1.3 var(--police-titres);
+    color: #f0f0f0;
+  }
+  h1 {
+    margin: 0.4rem 0 0.8rem;
+    font-family: var(--police-pinceau);
+    font-weight: 400;
+    font-size: clamp(2.8rem, 6vw, 3.8rem);
+    line-height: 1;
+    color: #fff;
+  }
+  .chapeau-entete {
+    margin: 0;
+    max-width: 44rem;
+    font-size: 1.06rem;
+    line-height: 1.6;
+    color: #e6eeff;
+  }
+  .entete-bande {
+    background: var(--bleu-profond);
+    color: #fff;
+  }
+  .entete-bande dl {
+    margin: 0 auto;
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2.5rem;
+  }
+  .entete-bande dt {
+    font-size: 0.78rem;
+    color: #c9d9fa;
+  }
+  .entete-bande dd {
+    margin: 0;
+    font: 600 0.98rem/1.3 var(--police-titres);
+  }
+
+  .message-cle {
+    margin: 1.6rem 0 0;
+    padding: 0.85rem 1.2rem;
+    background: var(--bleu-profond);
+    border-radius: 4px;
+    color: #fff;
+    font-weight: 600;
+    text-align: center;
+  }
+  section:not(.bande) > .message-cle:first-of-type {
+    margin-top: 0;
+  }
+
+  /* pastilles : couleurs de l'échelle de l'accueil */
+  .pastille {
+    flex-shrink: 0;
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font: 600 0.85rem/1.4 var(--police-titres);
+    white-space: nowrap;
+  }
+  .pastille-exigence {
+    background: #52b782;
+    color: #fff;
+  }
+  .pastille-a {
+    background: var(--jaune);
+    color: #000;
+  }
+  .pastille-b {
+    background: #e3ecfd;
+    color: #1f4b9e;
+  }
+
+  /* acquis */
+  .acquis-grille {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+    gap: 2rem;
+    align-items: start;
+  }
+  .acquis {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .acquis li {
+    display: flex;
+    gap: 0.9rem;
+    align-items: baseline;
+    padding: 0.7rem 0;
+    border-top: 1px solid var(--ligne);
+  }
+  .acquis li:last-child {
+    border-bottom: 1px solid var(--ligne);
+  }
+  .acquis .pastille {
+    min-width: 5.6rem;
+    text-align: center;
+  }
+  .annotation {
+    padding: 0.9rem 1rem;
+    background: #f3f4f6;
+    border: 1px solid var(--encre);
+    font-size: 0.92rem;
+    color: var(--encre);
+  }
+  .annotation h3 {
+    font-size: 1rem;
+  }
+  .annotation p {
+    margin: 0 0 0.6rem;
+    line-height: 1.55;
+  }
+  .annotation-cle {
+    margin: 0 !important;
+    font-weight: 600;
+    color: var(--accent-cle);
+  }
+
+  /* termes */
+  .termes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 1.2rem 2.5rem;
+    margin: 0;
+  }
+  .termes div {
+    padding-top: 0.6rem;
+    border-top: 2px solid var(--bleu);
+  }
+  .termes dt {
+    font: 600 1.02rem/1.3 var(--police-titres);
+    color: var(--encre);
+  }
+  .termes dd {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+  }
+
+  /* artefacts */
+  .sommaire {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1.6rem;
+  }
+  .sommaire__lien {
+    display: flex;
+    color: var(--encre);
+    text-decoration: none;
+    font-size: 0.95rem;
+    color: #fff;
+    background: var(--bleu);
+    border-radius: 180px;
+    overflow: hidden;
+  }
+    .sommaire__lien-code {
+      padding: 6px 8px;
+      font-weight: bold;
+    }
+    .sommaire__lien-titre {
+      padding: 6px 12px;
+      background: var(--bleu-profond);
+    }
+
+  .artefacts {
+    display: grid;
+    gap: 1rem;
+  }
+  .artefact {
+    padding: 1.3rem 1.5rem;
+    background: #fff;
+    border: 1px solid var(--ligne);
+    border-radius: 6px;
+    scroll-margin-top: 1rem;
+  }
+  .artefact-tete {
+    display: flex;
+    gap: 0.9rem;
+    align-items: baseline;
+    margin-bottom: 0.7rem;
+  }
+
+  .artefact-tete h3 {
+    display: flex;
+    gap: 6px;
+    margin: 0 0 0.15rem;
+    font-size: 1.1em;
+    color: var(--bleu);
+  }
+    .artefact h3 > strong {
+      color: var(--bleu-principal);
+      border-bottom: 4px solid currentColor;
+      padding-left: 2px;
+      padding-right: 2px;
+    }
+  .artefact-quoi {
+    margin: 0;
+    color: #5a6478;
+  }
+  .artefact ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+  .artefact li + li {
+    margin-top: 0.3rem;
+  }
+
+  /* traçabilité */
+  .traces {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 44rem;
+    background: #fff;
+    border: 1px solid var(--ligne);
+    border-radius: 6px;
+  }
+  .traces li {
+    display: grid;
+    grid-template-columns: 11rem 1.5rem 1fr;
+    align-items: baseline;
+    padding: 0.65rem 1rem;
+  }
+  .traces li + li {
+    border-top: 1px solid var(--ligne);
+  }
+  .trace-de {
+    font: 600 0.95rem/1.4 var(--police-titres);
+    color: var(--encre);
+  }
+  .trace-fleche {
+    color: var(--bleu);
+  }
+  .traces + .message-cle {
+    max-width: 44rem;
+  }
+
+  /* déroulement */
+  .etapes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+  .etapes > li {
+    border-top: 3px solid var(--encre);
+    padding-top: 0.7rem;
+  }
+  .numero {
+    display: block;
+    font: 600 1.8rem/1 var(--police-titres);
+    color: #9aa3b5;
+  }
+  .etape-titre {
+    display: block;
+    margin-top: 0.35rem;
+    font: 600 1.1rem/1.3 var(--police-titres);
+    color: var(--encre);
+  }
+  .etape-quand {
+    display: block;
+    font-size: 0.85rem;
+    color: #5a6478;
+  }
+  .etape-but {
+    margin: 0.6rem 0 0.5rem;
+    font-weight: 500;
+    color: var(--encre);
+  }
+  .etapes ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: 0.95rem;
+  }
+  .etapes ul li + li {
+    margin-top: 0.3rem;
+  }
+
+  /* questions */
+  .fenetres {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .fenetres li {
+    padding-top: 0.6rem;
+    border-top: 2px solid var(--bleu);
+  }
+  .fenetre-n {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #5a6478;
+  }
+  .fenetres li span:last-child {
+    font: 600 1rem/1.4 var(--police-titres);
+    color: var(--encre);
+  }
+ 
+  .pistes,
+  .hors {
+    margin: 0;
+    color: #000;
+    padding-left: 1.2rem;
+  }
+  .pistes li + li,
+  .hors li + li {
+    margin-top: 0.35rem;
+  }
+  .hors li::marker {
+    content: "✕  ";
+    color: #000;
+    font-weight: bold;
+    /* color: var(--accent-cle); */
+  }
+
+  /* livrables */
+  .livrables {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 1.5rem;
+  }
+  .livrable {
+    padding: 1.4rem 1.5rem;
+    background: #fff;
+    border: 1px solid var(--ligne);
+    border-top: 4px solid var(--bleu);
+    border-radius: 6px;
+  }
+  .livrable-tete,
+  .critere-tete {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+  }
+  .livrable-tete h3,
+  .critere-tete h3 {
+    margin: 0;
+  }
+  .poids {
+    font: 600 1.4rem/1 var(--police-titres);
+    color: var(--bleu-profond);
+    white-space: nowrap;
+  }
+  .livrable p {
+    margin: 0 0 0.8rem;
+  }
+  .livrable-format {
+    margin-top: 0.3rem !important;
+    font-size: 0.88rem;
+    color: #5a6478;
+  }
+  .livrable-rubrique {
+    margin-top: 1rem !important;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--encre);
+  }
+  .livrable ol {
+    margin: 0;
+    padding-left: 1.2rem;
+    font-size: 0.95rem;
+  }
+  .livrable ol li + li {
+    margin-top: 0.3rem;
+  }
+
+  /* critères */
+  .criteres {
+    display: grid;
+    gap: 1rem;
+  }
+  .critere {
+    padding: 1.1rem 1.4rem;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--ligne);
+    border-radius: 4px;
+  }
+    .critere .poids {
+      font-size: 1.25rem;
+    }
+  
+  .niveaux {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(1fr, 1fr));
+    gap: 1rem 2rem;
+    margin-top: 0.75rem;
+  }
+    .niveaux span {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 0.15rem;
+    }
+    .niveaux p {
+      margin: 0;
+      font-size: 0.93rem;
+    }
+  .haut {
+    border-left: 3px solid #1c6b47;
+    padding-left: 0.8rem;
+  }
+  .haut span {
+    color: #1c6b47;
+  }
+  .bas {
+    border-left: 3px solid var(--ligne);
+    padding-left: 0.8rem;
+  }
+  .bas span {
+    color: #5a6478;
+  }
+
+  /* à confirmer */
+  .a-confirmer {
+    display: inline-block;
+    padding: 0.05rem 0.45rem;
+    border: 1px dashed var(--accent-cle);
+    border-radius: 3px;
+    font: 500 0.85rem/1.4 var(--police-texte);
+    color: var(--accent-cle);
+  }
+  .entete-bande .a-confirmer {
+    border-color: #ffc9a8;
+    color: #ffe1cf;
+  }
+
+  /* apprentissages */
+  .apprentissages-titre {
+    margin-top: 2rem;
+  }
+  .apprentissages {
+    margin: 0;
+    padding-left: 1.2rem;
+    max-width: 48rem;
+  }
+  .apprentissages li + li {
+    margin-top: 0.3rem;
+  }
+
+  /* exemple de critère (B3) */
+  .exemple {
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    background: var(--papier-carte);
+    border-radius: 4px;
+  }
+  .exemple-titre {
+    margin: 0;
+    font-weight: 600;
+    color: var(--encre);
+  }
+  .exemple .niveaux {
+    margin-top: 0.6rem;
+  }
+  .exemple-pourquoi {
+    margin: 0.8rem 0 0;
+    font-size: 0.92rem;
+    color: #5a6478;
+  }
+
+  /* gabarits */
+  .gabarits-titre {
+    margin-top: 2.4rem;
+  }
+  .gabarits-titre + .note {
+    margin-top: 0;
+    margin-bottom: 1rem;
+  }
+  .gabarit {
+    max-width: 52rem;
+    margin-top: 0.6rem;
+    background: #fff;
+    border: 1px solid var(--ligne);
+    border-radius: 6px;
+  }
+  .gabarit summary {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font: 600 1rem/1.3 var(--police-titres);
+    color: var(--encre);
+  }
+  .gabarit[open] summary {
+    border-bottom: 1px solid var(--ligne);
+  }
+  .gabarit > .note,
+  .gabarit > .tableau-defile,
+  .gabarit > .fiche {
+    margin: 0;
+    padding: 0.8rem 1rem;
+  }
+  .tableau-defile {
+    overflow-x: auto;
+  }
+  .gabarit table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  .gabarit th,
+  .gabarit td {
+    padding: 0.45rem 0.6rem;
+    text-align: left;
+    border-bottom: 1px solid var(--ligne);
+    white-space: nowrap;
+  }
+  .gabarit th {
+    font-size: 0.8rem;
+    color: #5a6478;
+  }
+  .fiche div {
+    display: grid;
+    grid-template-columns: 10rem 1fr;
+    gap: 1rem;
+    padding: 0.45rem 0;
+  }
+  .fiche div + div {
+    border-top: 1px solid var(--ligne);
+  }
+  .fiche dt {
+    font-weight: 600;
+    color: var(--encre);
+  }
+  .fiche dd {
+    margin: 0;
+  }
+
+  /* déroulement, questions */
+  .lecture {
+    max-width: 48rem;
+    margin: -0.6rem 0 1.6rem;
+    padding: 0.6rem 0.8rem;
+    background: #f3f4f6;
+    border: 1px solid var(--encre);
+    font-size: 0.92rem;
+    color: var(--encre);
+  }
+  .regle {
+    margin: -0.8rem 0 1.4rem;
+    font-weight: bold;
+    color: #000
+  }
+
+  /* modalités */
+  .modalites-titre {
+    margin-top: 2.2rem;
+  }
+  .modalites {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 1rem 2.5rem;
+    margin: 0;
+  }
+  .modalites div {
+    padding-top: 0.6rem;
+    border-top: 2px solid var(--bleu);
+  }
+  .modalites dt {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #5a6478;
+  }
+  .modalites dd {
+    margin: 0.2rem 0 0;
+  }
+
+  .pied {
+    background-color: var(--noir);
+  }
+  .pied p {
+    display: flex;
+    flex-wrap: wrap;
+    color: var(--blanc);
+    gap: 0.5rem 1.6rem;
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
+    margin: 0 auto;
+    font-size: 0.88rem;
+  }
+  .pied a {
+    font-weight: 500;
+    color: var(--blanc);
+  }
+
+  @media (max-width: 760px) {
+    .acquis-grille,
+    .etapes,
+    .fenetres,
+    .niveaux,
+    .fiche div {
+      grid-template-columns: 1fr;
+    }
+    .traces li {
+      grid-template-columns: 1fr;
+    }
+    .trace-fleche {
+      display: none;
+    }
+    .trace-vers::before {
+      content: "→ ";
+      color: var(--bleu);
+    }
+  }
+</style>
